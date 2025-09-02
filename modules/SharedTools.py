@@ -223,7 +223,7 @@ def console_log(text='', logger_type=None, fill_text=None, silent_mode=False):
     else:
         print(text)
 
-from .WebDriverInstaller import GOOGLE_CHROME, MICROSOFT_EDGE, MOZILLA_FIREFOX, APPLE_SAFARI
+from .WebDriverInstaller import GOOGLE_CHROME, MICROSOFT_EDGE, MOZILLA_FIREFOX, WATERFOX, APPLE_SAFARI
 
 def clear_console():
     if os.name == 'nt':
@@ -365,6 +365,24 @@ def initSeleniumWebDriver(browser_name: str, webdriver_path = None, browser_path
         # Fix for: Your firefox profile cannot be loaded. it may be missing or inaccessible
         os.makedirs('firefox_tmp', exist_ok=True)
         os.environ['TMPDIR'] = (os.getcwd()+'/firefox_tmp').replace('\\', '/')
+        driver = Firefox(options=driver_options, service=service)
+    elif browser_name == WATERFOX:
+        driver_options = FirefoxOptions()
+        driver_options.page_load_strategy = "eager"
+        if browser_path.strip() != '':
+            driver_options.binary_location = browser_path
+        driver_options.set_preference('intl.accept_languages', 'en-US')
+        if headless:
+            driver_options.add_argument('--headless')
+        if os.name == 'posix': # For Linux
+            driver_options.add_argument('--no-sandbox')
+            driver_options.add_argument("--disable-dev-shm-usage")
+        service = FirefoxService(executable_path=webdriver_path)
+        if os.name == 'nt' and headless:
+            service.creation_flags = 0x08000000 # CREATE_NO_WINDOW (Process Creation Flags, WinBase.h) -> 'DevTools listening on' is not visible!!!
+        # Fix for: Your waterfox profile cannot be loaded. it may be missing or inaccessible
+        os.makedirs('waterfox_tmp', exist_ok=True)
+        os.environ['TMPDIR'] = (os.getcwd()+'/waterfox_tmp').replace('\\', '/')
         driver = Firefox(options=driver_options, service=service)
     elif browser_name == APPLE_SAFARI:
         driver_options = SafariOptions()
