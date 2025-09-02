@@ -1,11 +1,13 @@
 GOOGLE_CHROME = 'Google Chrome'
 MICROSOFT_EDGE = 'Microsoft Edge'
 MOZILLA_FIREFOX = 'Mozilla Firefox'
+WATERFOX = 'Waterfox'
 APPLE_SAFARI = 'Apple Safari'
 
 GOOGLE_CHROME_RE = r'(\d+\.\d+\.\d+\.\d+)'
 MICROSOFT_EDGE_RE = r'(\d+\.\d+\.\d+\.\d+)'
 MOZILLA_FIREFOX_RE = r'(\d+\.\d+\.\d+)|(\d+\.\d+)'
+WATERFOX_RE = r'(\d+\.\d+\.\d+)|(\d+\.\d+)'
 APPLE_SAFARI_RE = r'\d+.\d+.\d+'
 
 from .SharedTools import console_log, INFO, OK, ERROR, WARN
@@ -35,6 +37,7 @@ class WebDriverInstaller(object):
             GOOGLE_CHROME: [self.get_chromedriver_url, 'chromedriver.exe' if sys.platform.startswith('win') else 'chromedriver', self.get_chrome_version, GOOGLE_CHROME_RE],
             MICROSOFT_EDGE: [self.get_msedgedriver_url, 'msedgedriver.exe' if sys.platform.startswith('win') else 'msedgedriver', self.get_edge_version, MICROSOFT_EDGE_RE],
             MOZILLA_FIREFOX: [self.get_geckodriver_url, 'geckodriver.exe' if  sys.platform.startswith('win') else 'geckodriver', self.get_firefox_version, MOZILLA_FIREFOX_RE],
+            WATERFOX: [self.get_geckodriver_url, 'geckodriver.exe' if  sys.platform.startswith('win') else 'geckodriver', self.get_waterfox_version, WATERFOX_RE],
             APPLE_SAFARI: []
         }
         self.browser_name = browser_name
@@ -57,11 +60,11 @@ class WebDriverInstaller(object):
                 self.platform[1].append('linux32')
         elif sys.platform == "darwin":
             self.platform[0] = 'mac'
-            if self.browser_name == MOZILLA_FIREFOX:
+            if self.browser_name == MOZILLA_FIREFOX or self.browser_name == WATERFOX:
                 self.platform[1] = ['macos']
             elif platform.processor() == "arm":
                 self.platform[1] = ['mac-arm64', 'mac_arm64', 'mac64_m1']
-                if self.browser_name == MOZILLA_FIREFOX:
+                if self.browser_name == MOZILLA_FIREFOX or self.browser_name == WATERFOX:
                     self.platform[1] = ['macos-aarch64']
             elif platform.processor() == "i386":
                 self.platform[1] = ['mac64', 'mac-x64']
@@ -233,6 +236,49 @@ class WebDriverInstaller(object):
                     pass
         return [browser_version, browser_path]
 
+    def get_waterfox_version(self):
+        browser_version = None
+        browser_path = None
+        if self.platform[0] == 'linux':
+            if self.custom_browser_location is not None:
+                browser_version = self.get_browser_version_from_cmd(self.custom_browser_location, WATERFOX_RE)
+                browser_path = self.custom_browser_location
+            else:
+                for executable in ['waterfox']:
+                    browser_version = self.get_browser_version_from_cmd(shutil.which(executable), WATERFOX_RE)
+                    if browser_version is not None:
+                        browser_path = shutil.which(executable)
+                        break
+        elif self.platform[0] == "mac":
+            if self.custom_browser_location is not None:
+                browser_version = self.get_browser_version_from_cmd(self.custom_browser_location, WATERFOX_RE)
+                browser_path = self.custom_browser_location
+            else:
+                for path in ['/Applications/Waterfox.app/Contents/MacOS/waterfox']:
+                    try:
+                        browser_version = self.get_browser_version_from_cmd(path, WATERFOX_RE)
+                        browser_path = path
+                        break
+                    except:
+                        pass
+        elif self.platform[0] == 'win':
+            paths = [
+                f'{os.environ.get("SYSTEMDRIVE")}\\Program Files\\Waterfox',
+                f'{os.environ.get("SYSTEMDRIVE")}\\Program Files (x86)\\Waterfox',
+            ]
+            if self.custom_browser_location is not None:
+                paths = [str(Path(self.custom_browser_location).parent)]
+            for path in paths:
+                try:
+                    # Try to get version from waterfox.exe directly
+                    browser_version = self.get_browser_version_from_cmd(path+'\\waterfox.exe', WATERFOX_RE)
+                    if browser_version is not None:
+                        browser_path = path+'\\waterfox.exe'
+                        break
+                except:
+                    pass
+        return [browser_version, browser_path]
+
     def get_geckodriver_url(self, only_version=False):
         r = requests.get("https://api.github.com/repos/mozilla/geckodriver/releases/latest")
         r_json = r.json()
@@ -385,7 +431,7 @@ class WebDriverInstaller(object):
         logging.info(f'{self.browser_name} webdriver version: {current_webdriver_version}')
         console_log(f'{self.browser_name} version: {browser_version}', INFO, False, SILENT_MODE)
         console_log(f'{self.browser_name} webdriver version: {current_webdriver_version}', INFO, False, SILENT_MODE)
-        if self.browser_name == MOZILLA_FIREFOX:
+        if self.browser_name == MOZILLA_FIREFOX or self.browser_name == WATERFOX:
             latest_geckodriver_version = self.browser_data[0](True)
             if current_webdriver_version == latest_geckodriver_version:
                 logging.info('The webdriver has already been updated to the latest version!')
