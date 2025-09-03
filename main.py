@@ -63,6 +63,7 @@ args = {
     'auto_detect_browser': True,
     'chrome': False,
     'firefox': False,
+    'waterfox': False,
     'edge': False,
     'safari': False,
 
@@ -94,7 +95,7 @@ args = {
     'disable_logging': False
 }
 
-MBCI_BROWSERS_ARGS = ['auto-detect-browser', 'chrome', 'firefox', 'edge', 'safari']
+MBCI_BROWSERS_ARGS = ['auto-detect-browser', 'chrome', 'firefox', 'waterfox', 'edge', 'safari']
 MBCI_MODES_OF_OPERATION_ARGS = [
     'key', 'small-business-key', 'advanced-key', 'vpn-codes', 'account',
     'protecthub-account', 'only-webdriver-update', 'reset-eset-vpn', 'update', 'install'
@@ -326,6 +327,7 @@ def parse_argv(sys_argv=None):
         args_browsers = args_parser.add_mutually_exclusive_group(required=ENABLE_REQUIRED_ARGUMENTS)   
         args_browsers.add_argument('--chrome', action='store_true', help='Launching the program via Google Chrome browser')
         args_browsers.add_argument('--firefox', action='store_true', help='Launching the program via Mozilla Firefox browser')
+        args_browsers.add_argument('--waterfox', action='store_true', help='Launching the program via Waterfox browser')
         args_browsers.add_argument('--edge', action='store_true', help='Launching the program via Microsoft Edge browser')
         args_browsers.add_argument('--safari', action='store_true', help='Launching the program via Apple Safari browser')
         args_browsers.add_argument('--auto-detect-browser', action='store_true', help='The program itself will determine which browser to use (from the list of supported browsers)')
@@ -483,6 +485,8 @@ def main(disable_exit=False):
                     CHROME_PROXY_EXTENSION_PATH = ''
             elif args['firefox']:
                 browser_name = MOZILLA_FIREFOX
+            elif args['waterfox']:
+                browser_name = WATERFOX
             elif args['edge']:
                 browser_name = MICROSOFT_EDGE
             elif args['safari']:

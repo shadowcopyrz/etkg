@@ -223,7 +223,7 @@ def console_log(text='', logger_type=None, fill_text=None, silent_mode=False):
     else:
         print(text)
 
-from .WebDriverInstaller import GOOGLE_CHROME, MICROSOFT_EDGE, MOZILLA_FIREFOX, APPLE_SAFARI
+from .WebDriverInstaller import GOOGLE_CHROME, MICROSOFT_EDGE, MOZILLA_FIREFOX, WATERFOX, APPLE_SAFARI
 
 def clear_console():
     if os.name == 'nt':
@@ -348,7 +348,7 @@ def initSeleniumWebDriver(browser_name: str, webdriver_path = None, browser_path
                 driver = Edge(options=driver_options, service=EdgeService(executable_path=webdriver_path))
             else:
                 raise e
-    elif browser_name == MOZILLA_FIREFOX:
+    elif browser_name == MOZILLA_FIREFOX or browser_name == WATERFOX:
         driver_options = FirefoxOptions()
         driver_options.page_load_strategy = "eager"
         if browser_path.strip() != '':
@@ -363,8 +363,9 @@ def initSeleniumWebDriver(browser_name: str, webdriver_path = None, browser_path
         if os.name == 'nt' and headless:
             service.creation_flags = 0x08000000 # CREATE_NO_WINDOW (Process Creation Flags, WinBase.h) -> 'DevTools listening on' is not visible!!!
         # Fix for: Your firefox profile cannot be loaded. it may be missing or inaccessible
-        os.makedirs('firefox_tmp', exist_ok=True)
-        os.environ['TMPDIR'] = (os.getcwd()+'/firefox_tmp').replace('\\', '/')
+        browser_tmp_dir = 'firefox_tmp' if browser_name == MOZILLA_FIREFOX else 'waterfox_tmp'
+        os.makedirs(browser_tmp_dir, exist_ok=True)
+        os.environ['TMPDIR'] = (os.getcwd()+'/'+browser_tmp_dir).replace('\\', '/')
         driver = Firefox(options=driver_options, service=service)
     elif browser_name == APPLE_SAFARI:
         driver_options = SafariOptions()
