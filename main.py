@@ -39,7 +39,8 @@ LOGO = f"""
                                                               Fasjeit, alejanpa17, Ischunddu,
                                                               soladify, AngryBonk, Xoncia,
                                                               Anteneh13, otre4, AHDR3,
-                                                              Shariful797
+                                                              Shariful797, ImHisako
+                                                Telegram: https://t.me/rzc0d3r_official
 """
 if '--no-logo' in sys.argv:
     LOGO = f"ESET KeyGen {VERSION[0]} by rzc0d3r\n"
@@ -755,5 +756,6 @@ if __name__ == '__main__':
                     main(disable_exit=True)
             except KeyboardInterrupt:
                 exit_program(0, DRIVER)
+
 
 
