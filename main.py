@@ -40,7 +40,8 @@ LOGO = f"""
                                                               Fasjeit, alejanpa17, Ischunddu,
                                                               soladify, AngryBonk, Xoncia,
                                                               Anteneh13, otre4, AHDR3,
-                                                              Shariful797, ImHisako
+                                                              Shariful797, ImHisako,
+                                                              ppsmurf
                                                 Telegram: https://t.me/rzc0d3r_official
 """
 if '--no-logo' in sys.argv:
@@ -807,4 +808,5 @@ if __name__ == '__main__':
                     main(disable_exit=True)
             except KeyboardInterrupt:
                 exit_program(0, DRIVER)
+
 
