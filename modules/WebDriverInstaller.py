@@ -36,8 +36,8 @@ class WebDriverInstaller(object):
         self.browsers_data = {
             GOOGLE_CHROME: [self.get_chromedriver_url, 'chromedriver.exe' if sys.platform.startswith('win') else 'chromedriver', self.get_chrome_version, GOOGLE_CHROME_RE],
             MICROSOFT_EDGE: [self.get_msedgedriver_url, 'msedgedriver.exe' if sys.platform.startswith('win') else 'msedgedriver', self.get_edge_version, MICROSOFT_EDGE_RE],
-            MOZILLA_FIREFOX: [self.get_geckodriver_url, 'geckodriver.exe' if  sys.platform.startswith('win') else 'geckodriver', self.get_firefox_version, MOZILLA_FIREFOX_RE],
-            WATERFOX: [self.get_geckodriver_url, 'geckodriver.exe' if  sys.platform.startswith('win') else 'geckodriver', self.get_waterfox_version, WATERFOX_RE],
+            MOZILLA_FIREFOX: [self.get_geckodriver_url, 'geckodriver.exe' if sys.platform.startswith('win') else 'geckodriver', self.get_firefox_version, MOZILLA_FIREFOX_RE],
+            WATERFOX: [self.get_geckodriver_url, 'geckodriver.exe' if sys.platform.startswith('win') else 'geckodriver', self.get_waterfox_version, WATERFOX_RE],
             APPLE_SAFARI: []
         }
         self.browser_name = browser_name
@@ -291,7 +291,6 @@ class WebDriverInstaller(object):
         if only_version:
             return geckodriver_version
         if not api_rate_limit:
-            #https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-macos.tar.gz
             # note for: r_json['assets'][::-1]
             # in the initialization of WebDriverInstaller for 64bit is also suitable for 32bit, but
             # in the list of assets first go 32bit and it comes out that for 64bit gives a 32bit release, turning the list fixes it
@@ -453,4 +452,5 @@ class WebDriverInstaller(object):
             os.chmod(webdriver_path, 0o755)
         except:
             pass
+
         return [str(Path(webdriver_path).resolve()), str(Path(browser_path).resolve())]
