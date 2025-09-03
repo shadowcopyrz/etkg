@@ -54,5 +54,7 @@
 | --no-logo              | Replaces ASCII-Art with plain text |
 | --disable-progress-bar | Disables the webdriver download progress bar |
 | --disable-output-file  | Disables the output txt file generation |
+| --output-file          | Specifies the path to the output file |
 | --repeat {number}      | Specifies how many times to repeat generation |
 | --proxy-file {string}  | Specifies the path from where the list of proxies will be read from, default - proxies.txt |
+
