@@ -703,7 +703,7 @@ def main(disable_exit=False):
                 out_file = None if args['output_file'] == '' else args['output_file']
                 if not out_file:
                     date = datetime.datetime.now()
-                    out_file = f"{str(date.day)}.{str(date.month)}.{str(date.year)} - "+output_filename
+                    out_file = f"{str(date.day)}.{str(date.month)}.{str(date.year)} - " + output_filename
                 f = open(out_file, 'a')
                 f.write(output_line)
                 f.close()
@@ -807,3 +807,4 @@ if __name__ == '__main__':
                     main(disable_exit=True)
             except KeyboardInterrupt:
                 exit_program(0, DRIVER)
+
