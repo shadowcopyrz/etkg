@@ -90,6 +90,7 @@ args = {
     'no_logo': False,
     'disable_progress_bar': False,
     'disable_output_file': False,
+    'output_file': '',
     'repeat': 1,
     'proxy_file': DEFAULT_PATH_TO_PROXY_FILE,
     
@@ -104,7 +105,7 @@ MBCI_MODES_OF_OPERATION_ARGS = [
 ]
 MBCI_OTHER_ARGS = [
     'skip_webdriver_menu', 'no_headless', 'custom_browser_location', 'custom_email_api',
-    'skip_update_check', 'disable_progress_bar', 'disable_output_file', 'repeat', 'disable_logging',
+    'skip_update_check', 'disable_progress_bar', 'disable_output_file', 'output_file', 'repeat', 'disable_logging',
     'proxy_file'
 ]
 MBCI_ARGS = MBCI_BROWSERS_ARGS + MBCI_MODES_OF_OPERATION_ARGS + MBCI_OTHER_ARGS
@@ -320,6 +321,15 @@ def RunMenu():
     SettingMenu.add_item(
         OptionAction(
             args,
+            title='--output-file',
+            action='manual_input',
+            args_names='output-file',
+            default_value=args['output_file']
+        )
+    )
+    SettingMenu.add_item(
+        OptionAction(
+            args,
             title='--disable-logging',
             action='bool_switch',
             args_names='disable_logging'
@@ -401,6 +411,7 @@ def parse_argv(sys_argv=None):
         args_parser.add_argument('--no-logo', action='store_true', help='Replaces ASCII-Art with plain text')
         args_parser.add_argument('--disable-progress-bar', action='store_true', help='Disables the webdriver download progress bar')
         args_parser.add_argument('--disable-output-file', action='store_true', help='Disables the output txt file generation')
+        args_parser.add_argument('--output-file', type=str, default='', help='Specifies the output file name with path')
         args_parser.add_argument('--repeat', type=int, default=1, help='Specifies how many times to repeat generation')
         args_parser.add_argument('--proxy-file', type=str, default=DEFAULT_PATH_TO_PROXY_FILE, help=f'Specifies the path from where the list of proxies will be read from, default - {DEFAULT_PATH_TO_PROXY_FILE}')
 
@@ -689,8 +700,11 @@ def main(disable_exit=False):
             logging.info(output_line)
             console_log(output_line, silent_mode=SILENT_MODE)
             if not args['disable_output_file']:
-                date = datetime.datetime.now()
-                f = open(f"{str(date.day)}.{str(date.month)}.{str(date.year)} - "+output_filename, 'a')
+                out_file = None if args['output_file'] == '' else args['output_file']
+                if not out_file:
+                    date = datetime.datetime.now()
+                    out_file = f"{str(date.day)}.{str(date.month)}.{str(date.year)} - "+output_filename
+                f = open(out_file, 'a')
                 f.write(output_line)
                 f.close()
             
