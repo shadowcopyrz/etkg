@@ -2,6 +2,7 @@ import contextlib
 import logging
 import pathlib
 import json
+import copy
 import sys
 import io
 
@@ -136,11 +137,14 @@ import re
 
 PATH_TO_SELF = sys.executable if I_AM_EXECUTABLE else __file__ # importing modules removes the original value of the variable
 DRIVER = None
+ARGS_DEFAULT = copy.deepcopy(args)
+
 PROXIES = []
 PROXIES_LEN = 0
 PROXY_COUNTER = 1
 PROXY_ERROR_COUNTER = 0
 PROXY_ERROR_COUNTER_LIMIT = 3
+
 CHROME_PROXY_EXTENSION_PATH = ""
 
 class MBCIConfigManager:
@@ -148,24 +152,38 @@ class MBCIConfigManager:
         self.path = path
 
     def save(self, args):
-        config = {
-            'Browser': [key for key in MBCI_BROWSERS_ARGS if args[key.replace('-', '_')]][0],
-            'Mode of operation': [key for key in MBCI_MODES_OF_OPERATION_ARGS if args[key.replace('-', '_')]][0],
-            'Email API': args['email_api']
-        }
-        
+        config = {}
+
+        for key in MBCI_BROWSERS_ARGS:
+            key_ = key.replace('-', '_')
+            if ARGS_DEFAULT[key_] != args[key_]:
+                config["Browser"] = key
+
+        for key in MBCI_MODES_OF_OPERATION_ARGS:
+            key_ = key.replace('-', '_')
+            if ARGS_DEFAULT[key_] != args[key_]:
+                config["Mode of operation"] = key
+
+        if DEFAULT_EMAIL_API != args["email_api"]:
+            config["Email API"] = args["email_api"]
+
         for key in MBCI_OTHER_ARGS:
-            config[key] = args[key]
+            if ARGS_DEFAULT[key] != args[key]:
+                config[key] = args[key]
         
-        json.dump(config, open(CONFIG_PATH, 'w'), indent=4)
+        if config != {}:
+            json.dump(config, open(CONFIG_PATH, 'w'), indent=4)
+            return True
+
+        return False
     
-    def load(self):
+    def load(self, convert_to_sys_argv = False):
         config = json.load(open(self.path))
+        filtered_config = {}
         try:
-            filtered_config = {}
-            browser = config.pop('Browser')
-            mode_of_operation = config.pop('Mode of operation')
-            email_api = config.pop('Email API')
+            browser = config.pop('Browser', "")
+            mode_of_operation = config.pop('Mode of operation', "")
+            email_api = config.pop('Email API', "")
             if browser in MBCI_BROWSERS_ARGS:
                 filtered_config[browser] = True
             if mode_of_operation in MBCI_MODES_OF_OPERATION_ARGS:
@@ -175,9 +193,36 @@ class MBCIConfigManager:
             for key in config:
                 if key in MBCI_OTHER_ARGS:
                     filtered_config[key] = config[key]
-            return filtered_config
         except:
-            return False
+            pass
+
+        if convert_to_sys_argv and filtered_config != {}:        
+            all_args = copy.deepcopy(ARGS_DEFAULT)
+            browser_in_config = [x for x in filtered_config if x and x in MBCI_BROWSERS_ARGS] != []
+            mode_in_config = [x for x in filtered_config if x and x in MBCI_MODES_OF_OPERATION_ARGS] != []
+            config_sys_argv = []
+
+            if browser_in_config:
+                for key in MBCI_BROWSERS_ARGS:
+                    all_args[key.replace('-', '_')] = False
+
+            if mode_in_config:
+                for key in MBCI_MODES_OF_OPERATION_ARGS:
+                    all_args[key.replace('-', '_')] = False
+            
+            for key, value in filtered_config.items():
+                all_args[key.replace('-', '_')] = value
+
+            for key, value in all_args.items():
+                if (isinstance(value, bool) and not value) or (key in MBCI_OTHER_ARGS and all_args[key] == ARGS_DEFAULT[key]):
+                    continue
+                config_sys_argv.append('--'+key.replace('_', '-'))
+                if not isinstance(value, bool):
+                    config_sys_argv.append(str(value))
+
+            return config_sys_argv
+        else:
+            return filtered_config
     
     @property
     def is_exists(self):
@@ -688,22 +733,14 @@ if __name__ == '__main__':
         config_manager = MBCIConfigManager()
         if config_manager.is_exists:
             try:
-                config_args = config_manager.load()
-                # converting args(dict) to sys.argv for argparse
-                config_sys_argv = []
-                for key, value in config_args.items():
-                    if isinstance(value, bool) and not value:
-                        continue
-                    config_sys_argv.append('--'+key.replace('_', '-'))
-                    if not isinstance(value, bool):
-                        config_sys_argv.append(str(value))
                 # check config integrity with argparse
+                config_sys_argv = config_manager.load(convert_to_sys_argv=True)
                 parsed_args = parse_argv(config_sys_argv)
                 if parsed_args is not None:
                     args = parsed_args
                 else:
                     raise RuntimeError
-            except:
+            except Exception as E:
                 console_log("\nError loading the config, check its integrity!!!", WARN)
                 input('\nPress Enter to continue...')
         parse_argv() # run MBCI
@@ -756,6 +793,3 @@ if __name__ == '__main__':
                     main(disable_exit=True)
             except KeyboardInterrupt:
                 exit_program(0, DRIVER)
-
-
-
