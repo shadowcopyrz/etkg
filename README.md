@@ -90,6 +90,9 @@ It will ask the number of accounts, keys to be generated.
 2. [How to Install Firefox on Linux](https://support.mozilla.org/en-US/kb/install-firefox-linux)
 3. [How to Install Firefox on Mac](https://support.mozilla.org/en-US/kb/how-download-and-install-firefox-mac)
 
+#### Waterfox (fully supports)
+1. [Download](https://www.waterfox.net)
+
 #### Microsoft Edge (fully supports)
 1. [Download](https://www.microsoft.com/en-us/edge/download?form=MA13L8)
 
