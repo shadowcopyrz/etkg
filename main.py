@@ -427,7 +427,6 @@ def parse_argv(sys_argv=None):
         args_parser.add_argument('--repeat', type=int, default=1, help='Specifies how many times to repeat generation')
         args_parser.add_argument('--proxy-file', type=str, default=DEFAULT_PATH_TO_PROXY_FILE, help=f'Specifies the path from where the list of proxies will be read from, default - {DEFAULT_PATH_TO_PROXY_FILE}')
         args_parser.add_argument('--custom-password', action='store_true', help='Allows you to use a custom password instead of randomly generated one')
-        args_parser.add_argument('--password', type=str, default='', help='Set the custom password to use for account creation')
 
         # Logging
         args_logging = args_parser.add_mutually_exclusive_group()
@@ -846,6 +845,7 @@ if __name__ == '__main__':
                     main(disable_exit=True)
             except KeyboardInterrupt:
                 exit_program(0, DRIVER)
+
 
 
 
