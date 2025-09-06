@@ -94,6 +94,8 @@ args = {
     'output_file': '',
     'repeat': 1,
     'proxy_file': DEFAULT_PATH_TO_PROXY_FILE,
+    'custom_password': False,
+    'password': '',
     
     'silent': False,
     'disable_logging': False
@@ -107,7 +109,7 @@ MBCI_MODES_OF_OPERATION_ARGS = [
 MBCI_OTHER_ARGS = [
     'skip_webdriver_menu', 'no_headless', 'custom_browser_location', 'custom_email_api',
     'skip_update_check', 'disable_progress_bar', 'disable_output_file', 'output_file', 'repeat', 'disable_logging',
-    'proxy_file'
+    'proxy_file', 'custom_password', 'password'
 ]
 MBCI_ARGS = MBCI_BROWSERS_ARGS + MBCI_MODES_OF_OPERATION_ARGS + MBCI_OTHER_ARGS
 # -----------------------------------------------------------------------------------------------
@@ -290,6 +292,14 @@ def RunMenu():
     SettingMenu.add_item(
         OptionAction(
             args,
+            title='--custom-password',
+            action='custom_password',
+            args_names='custom-password'
+        )
+    )    
+    SettingMenu.add_item(
+        OptionAction(
+            args,
             title='--custom-email-api',
             action='bool_switch',
             args_names='custom-email-api'
@@ -355,6 +365,7 @@ def RunMenu():
             default_value=args['proxy_file']
         )
     )
+    
 
     def exit_with_save_config():
         MBCIConfigManager().save(args)
@@ -415,6 +426,8 @@ def parse_argv(sys_argv=None):
         args_parser.add_argument('--output-file', type=str, default='', help='Specifies the path to the output file')
         args_parser.add_argument('--repeat', type=int, default=1, help='Specifies how many times to repeat generation')
         args_parser.add_argument('--proxy-file', type=str, default=DEFAULT_PATH_TO_PROXY_FILE, help=f'Specifies the path from where the list of proxies will be read from, default - {DEFAULT_PATH_TO_PROXY_FILE}')
+        args_parser.add_argument('--custom-password', action='store_true', help='Allows you to use a custom password instead of randomly generated one')
+        args_parser.add_argument('--password', type=str, default='', help='Set the custom password to use for account creation')
 
         # Logging
         args_logging = args_parser.add_mutually_exclusive_group()
@@ -609,7 +622,32 @@ def main(disable_exit=False):
                     console_log('Invalid email syntax!!!', ERROR)
         
         if email_obj.email is not None:
-            e_passwd = dataGenerator(10)
+            # Auto-enable custom password if password is set
+            if args['password'] and args['password'].strip():
+                args['custom_password'] = True
+            
+            if args['custom_password']:
+                # Check if password is already saved in settings
+                if args['password'] and args['password'].strip():
+                    # Validate the saved password
+                    is_valid, message = validate_custom_password(args['password'])
+                    if is_valid:
+                        e_passwd = args['password']
+                        console_log(f'Using saved custom password: {"*" * len(e_passwd)}', OK)
+                        logging.info('Using saved custom password from settings')
+                    else:
+                        console_log(f'Saved password is invalid: {message}', ERROR)
+                        logging.error(f'Saved password validation failed: {message}')
+                        args['password'] = ''  # Clear invalid password
+                        args['custom_password'] = False  # Disable custom password
+                        # Fall through to random password generation
+                        e_passwd = dataGenerator(10)
+                else:
+                    # No saved password but custom password enabled, disable it
+                    args['custom_password'] = False
+                    e_passwd = dataGenerator(10)
+            else:
+                e_passwd = dataGenerator(10)
             l_key = None
             obtained_from_site = False
             # ESET HOME

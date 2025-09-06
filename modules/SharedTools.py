@@ -270,6 +270,30 @@ def dataGenerator(length, only_numbers=False):
         random.shuffle(data)
     return ''.join(data)
 
+def validate_custom_password(password):
+    """Validates custom password according to requirements:
+    - At least 10 characters long
+    - 1 uppercase letter
+    - 1 lowercase letter  
+    - 1 number
+    """
+    if len(password) < 10:
+        return False, "Password must be at least 10 characters long"
+    
+    has_upper = any(c.isupper() for c in password)
+    if not has_upper:
+        return False, "Password must contain at least 1 uppercase letter"
+    
+    has_lower = any(c.islower() for c in password)
+    if not has_lower:
+        return False, "Password must contain at least 1 lowercase letter"
+    
+    has_digit = any(c.isdigit() for c in password)
+    if not has_digit:
+        return False, "Password must contain at least 1 number"
+    
+    return True, "Password is valid"
+
 def initSeleniumWebDriver(browser_name: str, webdriver_path = None, browser_path = '', chrome_proxy_extension_path = '', headless=True):
     if browser_path is None:
         browser_path = ''
