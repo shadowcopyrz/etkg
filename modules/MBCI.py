@@ -24,7 +24,7 @@ class MenuAction(object):
             self.function()
 
 class OptionAction(object):
-    def __init__(self, args, title, action, args_names, choices=[], default_value=None, data_type=str, data_range=None):
+    def __init__(self, args, title, action, args_names, choices=[], default_value=None, data_type=str, data_range=None, validation_func=None):
         self.args = args
         self.title = title
         self.action = action
@@ -33,72 +33,29 @@ class OptionAction(object):
         self.args_names = args_names
         self.data_type = data_type
         self.data_range = data_range
+        self.validation_func = validation_func
 
     def render_title(self):
         if self.action in ['store_true', 'choice']:
             return f'{self.title} (selected: {Fore.YELLOW}{self.value}{Fore.RESET})'
         elif self.action == 'manual_input':
             # Special handling for password display
-            if self.args_names == 'password' and self.value:
+            if self.args_names == 'custom-password' and self.args['custom_password']:
+                masked_password = '*' * len(str(self.args['custom_password']))
+                return f'{self.title} (saved: {Fore.YELLOW}{masked_password}{Fore.RESET})'
+            elif self.args_names == 'password' and self.value:
                 masked_password = '*' * len(str(self.value))
                 return f'{self.title} (saved: {Fore.YELLOW}{masked_password}{Fore.RESET})'
             else:
-                return f'{self.title} (saved: {Fore.YELLOW}{self.value}{Fore.RESET})'
+                return f'{self.title} (saved: {Fore.YELLOW}{self.args[self.args_names.replace("-", "_")]}{Fore.RESET})'
         elif self.action == 'bool_switch':
             if self.args[self.args_names.replace('-', '_')]:
                 return f'{self.title} {Fore.GREEN}(enabled){Fore.RESET}'
             return f'{self.title} {Fore.RED}(disabled){Fore.RESET}'
-        elif self.action == 'custom_password':
-            # Special handling for combined custom password option
-            has_password = self.args['password'] and self.args['password'].strip()
-            if has_password:
-                masked_password = '*' * len(str(self.args['password']))
-                return f'{self.title} {Fore.GREEN}(enabled - saved: {masked_password}){Fore.RESET}'
-            else:
-                return f'{self.title} {Fore.RED}(disabled - no password set){Fore.RESET}'
         
     def run(self):
         if self.action == 'bool_switch':
             self.args[self.args_names.replace('-', '_')] = not self.args[self.args_names.replace('-', '_')]
-            return True
-        elif self.action == 'custom_password':
-            # Special handling for combined custom password option
-            clear_console()
-            print(self.title+'\n')
-            print('Custom password requirements:')
-            print('- At least 10 characters long')
-            print('- 1 uppercase letter')
-            print('- 1 lowercase letter')
-            print('- 1 number\n')
-            
-            while True:
-                password = input('Enter custom password (or press Enter to disable): ').strip()
-                
-                if password == '':
-                    # Disable custom password
-                    self.args['custom_password'] = False
-                    self.args['password'] = ''
-                    print('\nCustom password disabled.')
-                    input('Press Enter to continue...')
-                    break
-                else:
-                    # Validate password
-                    is_valid, message = validate_custom_password(password)
-                    if is_valid:
-                        self.args['custom_password'] = True
-                        self.args['password'] = password
-                        print(f'\nPassword is valid and saved!')
-                        input('Press Enter to continue...')
-                        break
-                    else:
-                        clear_console()
-                        print(self.title+'\n')
-                        print('Custom password requirements:')
-                        print('- At least 10 characters long')
-                        print('- 1 uppercase letter')
-                        print('- 1 lowercase letter')
-                        print('- 1 number\n')
-                        print(f'Invalid password: {message}\n')
             return True
         execution = True
         while True:
@@ -121,7 +78,7 @@ class OptionAction(object):
                             print('Allowed values: '+str(self.data_range)+'\n')
                         
                         # Special handling for password input
-                        if self.args_names == 'password':
+                        if self.args_names in ['password', 'custom-password']:
                             print('Custom password requirements:')
                             print('- At least 10 characters long')
                             print('- 1 uppercase letter')
@@ -136,8 +93,19 @@ class OptionAction(object):
                                 if self.value not in self.data_range:
                                     raise
                             
-                            # Special validation for password
-                            if self.args_names == 'password' and self.value:
+                            # Custom validation function
+                            if self.validation_func is not None and self.value:
+                                is_valid, message = self.validation_func(self.value)
+                                if not is_valid:
+                                    clear_console()
+                                    print(self.title+'\n')
+                                    print(f'Invalid input: {message}\n')
+                                    continue
+                                else:
+                                    print(f'\nInput is valid and will be saved!')
+                            
+                            # Special validation for password (backward compatibility)
+                            if self.args_names in ['password', 'custom-password'] and self.value:
                                 is_valid, message = validate_custom_password(self.value)
                                 if not is_valid:
                                     clear_console()
