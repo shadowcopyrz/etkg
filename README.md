@@ -1,5 +1,6 @@
 <div align="center">
-  Support for the project was discontinued on November 16, 2025. Thank you to everyone who used it, helped with the implementation of new features and bug fixes, and a special thank you to everyone who provided financial support.
+  ## Support for the project was discontinued on November 16, 2025. Thank you to everyone who used it, helped with the implementation of new features and bug fixes, and a special thank you to everyone who provided financial support.
+
 
   <img src="https://github.com/shadowcopyrz/etkg/blob/main/img/logo_alt.png?raw=true" alt="logo"/>
     
