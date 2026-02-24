@@ -330,14 +330,14 @@ class EsetProtectHubKeygen(object):
         exec_js(f'return {GET_EBID}("btn-login").click()')
         
         # Start free trial
-        uCE(self.driver, f'return {GET_EBID}("welcome-dialog-generate-trial-license") != null', delay=3)
+        uCE(self.driver, f'return {GET_EBID}("welcome-dialog-trial-link") != null', delay=3)
         logging.info('Successfully!')
         logging.info('Sending a request for a get license...')
         console_log('Successfully!', OK, silent_mode=SILENT_MODE)
         console_log('\nSending a request for a get license...', INFO, silent_mode=SILENT_MODE)
         try:
-            exec_js(f'return {GET_EBID}("welcome-dialog-generate-trial-license").click()')
-            exec_js(f'return {GET_EBID}("welcome-dialog-generate-trial-license")').click()
+            exec_js(f'return {GET_EBID}("welcome-dialog-trial-link").click()')
+            exec_js(f'return {GET_EBID}("welcome-dialog-trial-link")').click()
         except:
             pass
         
@@ -368,16 +368,19 @@ class EsetProtectHubKeygen(object):
         license_was_generated = False
         for _ in range(DEFAULT_MAX_ITER*10): # 5m
             try:
-                r = exec_js(f"return {GET_EBCN}('Toastify__toast-body toastBody')[0].innerText").lower()
-                if r.find('couldn\'t be generated') != -1:
-                    break
-                elif r.find('was generated') != -1:
-                    logging.info('Successfully!')
-                    console_log('Successfully!', OK, silent_mode=SILENT_MODE)
-                    license_was_generated = True
-                    break
+                alerts = exec_js(f"return {GET_EBCN}('Toastify__toast-body toastBody')")
+                for alert in alerts:
+                    if alert.text.find('couldn\'t be generated') != -1:
+                        break
+                    elif alert.text.find('was generated') != -1:
+                        logging.info('Successfully!')
+                        console_log('Successfully!', OK, silent_mode=SILENT_MODE)
+                        license_was_generated = True
+                        break
             except Exception as E:
                 pass
+            if license_was_generated:
+                break
             time.sleep(DEFAULT_DELAY)
 
         if not license_was_generated:
@@ -389,14 +392,14 @@ class EsetProtectHubKeygen(object):
         license_name = 'ESET PROTECT Advanced'
         try:
             self.driver.get('https://protecthub.eset.com/licenses')
-            uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "license-list-body-cell-renderer-row-0-column-0").innerText != ""')
-            license_id = exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\nreturn {GET_EBAV}("div", "data-label", "license-list-body-cell-renderer-row-0-column-0").innerText')
+            uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "customer-licenses-list-body-cell-renderer-row-0-column-0").innerText != ""')
+            license_id = exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\nreturn {GET_EBAV}("div", "data-label", "customer-licenses-list-body-cell-renderer-row-0-column-0").innerText')
             logging.info(f'License ID: {license_id}')
             logging.info('Getting information from the license...')
             console_log(f'License ID: {license_id}', OK, silent_mode=SILENT_MODE)
             console_log('\nGetting information from the license...', INFO, silent_mode=SILENT_MODE)
             self.driver.get(f'https://protecthub.eset.com/licenses/details/2/{license_id}/overview')
-            uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "license-overview-validity-value") != null')
+            uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "license-overview-key-value") != null')
             license_out_date = exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\nreturn {GET_EBAV}("div", "data-label", "license-overview-validity-value").children[0].children[0].innerText')
             # Obtaining license key
             exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\n{GET_EBAV}("div", "data-label", "license-overview-key-value").children[0].children[0].click()')
@@ -444,7 +447,7 @@ class EsetProtectHubKeygen(object):
         try:
             self.driver.execute_script(f'return {GET_EBID}("license-actions-button")').click()
             time.sleep(1)
-            button = self.driver.find_element('xpath', '//a[.//div[text()="Remove license"]]')
+            button = self.driver.find_element('xpath', '//a[.//span[text()="Remove subscription"]]')
             if button is not None:
                 button.click()
             untilConditionExecute(self.driver, f'return {CLICK_WITH_BOOL}({GET_EBID}("remove-license-dlg-remove-btn"))', max_iter=15)
@@ -454,7 +457,7 @@ class EsetProtectHubKeygen(object):
                     self.driver.execute_script(f'return {GET_EBID}("remove-license-dlg-remove-btn")').click()
                 except:
                     pass
-                if self.driver.page_source.lower().find('to keep the solutions up to date') == -1:
+                if self.driver.page_source.lower().find('Subscription removed') == -1:
                     time.sleep(1)
                     logging.info('Key successfully deleted!!!')
                     console_log('Key successfully deleted!!!', OK, silent_mode=SILENT_MODE)

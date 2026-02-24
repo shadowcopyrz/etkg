@@ -465,14 +465,14 @@ def parseEPHKey(email_obj, driver=None, delay=DEFAULT_DELAY, max_iter=DEFAULT_MA
             messages = email_obj.get_messages()
             if messages is not None:
                 for message in messages:
-                    if message['subject'].find('Thank you for purchasing') != -1:
+                    if message['subject'].find('Welcome to ESET. Here’s how to get started.') != -1:
                         license_data = message['body']
                         break
         elif email_obj.class_name in ['mailticking', 'fakemail', 'incognitomail', 'emailfake']:
             inbox = email_obj.parse_inbox()
             for mail in inbox:
                 mail_id, mail_from, mail_subject = mail
-                if mail_subject.find('Thank you for purchasing') != -1:
+                if mail_subject.find('Welcome to ESET. Here’s how to get started.') != -1:
                     try:
                         email_obj.open_mail(mail_id)
                         time.sleep(3)
