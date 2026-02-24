@@ -1,11 +1,7 @@
-## Support for the project was discontinued on November 16, 2025. Thank you to everyone who used it, helped with the implementation of new features and bug fixes, and a special thank you to everyone who provided financial support!!!
-
----
-
 <div align="center">
   <img src="https://github.com/shadowcopyrz/etkg/blob/main/img/logo_alt.png?raw=true" alt="logo"/>
     
-  ![Version](https://img.shields.io/badge/version-1.5.6.2-gold)
+  ![Version](https://img.shields.io/badge/version-1.5.6.3-gold)
   
   [![Commit activity](https://img.shields.io/github/commit-activity/t/shadowcopyrz/etkg/main?cacheSeconds=0)](https://github.com/shadowcopyrz/etkg/commits/main)
   ![Last commit](https://img.shields.io/github/last-commit/shadowcopyrz/etkg/main?cacheSeconds=0)
