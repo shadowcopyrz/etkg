@@ -39,7 +39,7 @@ My [public channel with archives of my projects](https://t.me/rzc0d3r_official)
 
 ---
 ## Project Status 
-- Current Status: Closed
+- Current Status: Active
 
 ## Known Errors
 - **Almost all Email APIs have been blocked by ESET!!!** Recommended to use ```emailfake```, ```inboxes``` and also use the ```--custom-email-api``` argument!
