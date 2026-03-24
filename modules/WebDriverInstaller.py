@@ -390,6 +390,9 @@ class WebDriverInstaller(object):
                         return None
             
     def menu(self, disable_progress_bar=False): # auto updating or installing webdrivers
+        import platform
+        if platform.machine() == 'aarch64':
+            return ['/usr/bin/chromedriver', '/usr/bin/chromium']
         def download():
             driver_url = self.browser_data[0]()
             if driver_url is not None:

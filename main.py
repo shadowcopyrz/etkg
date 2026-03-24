@@ -784,6 +784,7 @@ if __name__ == '__main__':
     
     # load proxies from file
     result = WebDriverInstaller(GOOGLE_CHROME).detect_installed_browser()
+    browser_name = None
     if result is not None:
         browser_name = result[0]
     if browser_name == GOOGLE_CHROME and os.path.exists(args['proxy_file']) and os.path.isfile(args['proxy_file']):
