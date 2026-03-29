@@ -41,7 +41,7 @@ LOGO = f"""
                                                               soladify, AngryBonk, Xoncia,
                                                               Anteneh13, otre4, AHDR3,
                                                               Shariful797, ImHisako,
-                                                              ppsmurf
+                                                              ppsmurf, ugvfpdcuwfnh
                                                 Telegram: https://t.me/rzc0d3r_official
 """
 if '--no-logo' in sys.argv:
