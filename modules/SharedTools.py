@@ -273,6 +273,12 @@ def dataGenerator(length, only_numbers=False):
 def initSeleniumWebDriver(browser_name: str, webdriver_path = None, browser_path = '', chrome_proxy_extension_path = '', headless=True):
     if browser_path is None:
         browser_path = ''
+    import platform, os
+    if platform.machine() == 'aarch64' and browser_name == GOOGLE_CHROME:
+        if not webdriver_path and os.path.exists('/usr/bin/chromedriver'):
+            webdriver_path = '/usr/bin/chromedriver'
+        if not browser_path and os.path.exists('/usr/bin/chromium'):
+            browser_path = '/usr/bin/chromium'
     logging.info('-- Browsers Initializer --')
     console_log(f'{colorama.Fore.LIGHTMAGENTA_EX}-- Browsers Initializer --{colorama.Fore.RESET}\n', silent_mode=SILENT_MODE)
     if os.name == 'posix': # For Linux
