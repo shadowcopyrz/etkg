@@ -4,6 +4,7 @@ import os
 import asyncio
 import subprocess
 import re
+import sys
 from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -118,7 +119,7 @@ async def api_get_history():
     return get_history()
 
 def build_cli_args(config: ConfigModel) -> List[str]:
-    args = ["python", "main.py"]
+    args = [sys.executable, "main.py"]
     
     # Mode
     if config.mode == "key":
