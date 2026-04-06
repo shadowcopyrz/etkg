@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESET KeyGen Web UI</title>
+    <!-- TailwindCSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for reactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* Custom scrollbar for logs */
+        .log-viewer::-webkit-scrollbar {
+            width: 8px;
+        }
+        .log-viewer::-webkit-scrollbar-track {
+            background: #1f2937; /* Tailwind gray-800 */
+        }
+        .log-viewer::-webkit-scrollbar-thumb {
+            background: #4b5563; /* Tailwind gray-600 */
+            border-radius: 4px;
+        }
+        .log-viewer::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* Tailwind gray-500 */
+        }
+        /* Basic ANSI color support placeholders */
+        .ansi-red { color: #ef4444; }
+        .ansi-green { color: #10b981; }
+        .ansi-yellow { color: #f59e0b; }
+        .ansi-blue { color: #3b82f6; }
+        .ansi-magenta { color: #8b5cf6; }
+        .ansi-cyan { color: #06b6d4; }
+        .ansi-white { color: #f9fafb; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans antialiased">
+    <div x-data="keygenApp()" class="container mx-auto p-4 max-w-6xl">
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-blue-600 flex items-center">
+                <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                ESET KeyGen Web UI
+            </h1>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Configuration & Controls -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Configuration
+                    </h2>
+                    <form @submit.prevent="startGeneration" class="space-y-4">
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Mode of Operation</label>
+                            <select x-model="config.mode" :disabled="isRunning" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                <option value="key">ESET Smart Security Premium Key</option>
+                                <option value="small_business_key">ESET Small Business Security Key</option>
+                                <option value="advanced_key">ESET PROTECT Advanced Key</option>
+                                <option value="vpn_codes">ESET VPN Codes (DISABLED)</option>
+                                <option value="account">ESET HOME Account</option>
+                                <option value="protecthub_account">ESET ProtectHub Account</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email API</label>
+                            <select x-model="config.email_api" :disabled="isRunning || config.custom_email_api" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                <option value="emailfake">emailfake (Recommended)</option>
+                                <option value="1secmail">1secmail</option>
+                                <option value="guerrillamail">guerrillamail</option>
+                                <option value="developermail">developermail</option>
+                                <option value="mailticking">mailticking</option>
+                                <option value="fakemail">fakemail</option>
+                                <option value="inboxes">inboxes</option>
+                                <option value="incognitomail">incognitomail</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Browser</label>
+                            <select x-model="config.browser" :disabled="isRunning" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                <option value="auto">Auto Detect</option>
+                                <option value="chrome">Google Chrome</option>
+                                <option value="firefox">Mozilla Firefox</option>
+                                <option value="edge">Microsoft Edge</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="config.no_headless" :disabled="isRunning" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:cursor-not-allowed">
+                                <span class="ml-2 text-sm text-gray-700">Show Browser (No Headless)</span>
+                            </label>
+                            
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="config.skip_update_check" :disabled="isRunning" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:cursor-not-allowed">
+                                <span class="ml-2 text-sm text-gray-700">Skip Update Check</span>
+                            </label>
+
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="config.custom_email_api" :disabled="isRunning" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:cursor-not-allowed">
+                                <span class="ml-2 text-sm text-gray-700">Use Custom Email API (Manual)</span>
+                            </label>
+                        </div>
+
+                        <div class="pt-4 flex space-x-2">
+                            <button type="submit" :disabled="isRunning" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors duration-150 disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center">
+                                <svg x-show="isRunning" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span x-text="isRunning ? 'Running...' : 'Start Generation'"></span>
+                            </button>
+                            <button type="button" @click="stopGeneration" :disabled="!isRunning" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors duration-150 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                Stop
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Middle/Right Column: Logs & History -->
+            <div class="lg:col-span-2 flex flex-col space-y-6">
+                
+                <!-- Log Viewer -->
+                <div class="bg-gray-900 rounded-lg shadow flex-grow flex flex-col" style="min-height: 400px;">
+                    <div class="p-3 bg-gray-800 rounded-t-lg border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-sm font-semibold text-gray-200 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Execution Logs
+                        </h2>
+                        <div class="flex space-x-2">
+                            <button @click="clearLogs" class="text-xs text-gray-400 hover:text-white transition-colors">Clear</button>
+                            <span class="flex h-3 w-3 relative top-1">
+                              <span x-show="isRunning" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3" :class="isRunning ? 'bg-green-500' : 'bg-gray-500'"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div id="log-container" class="log-viewer p-4 overflow-y-auto text-sm font-mono text-gray-300 flex-grow" style="max-height: 500px;">
+                        <template x-for="(log, index) in logs" :key="index">
+                            <div x-html="formatLog(log)" class="mb-1"></div>
+                        </template>
+                        <div x-show="logs.length === 0" class="text-gray-500 italic text-center mt-10">
+                            Waiting for generation to start...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Panel -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Generation History
+                        </div>
+                        <button @click="fetchHistory" class="text-sm text-blue-600 hover:text-blue-800" title="Refresh History">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                    </h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white text-sm">
+                            <thead class="bg-gray-50 text-gray-600">
+                                <tr>
+                                    <th class="py-2 px-3 text-left font-semibold border-b">Date</th>
+                                    <th class="py-2 px-3 text-left font-semibold border-b">Type</th>
+                                    <th class="py-2 px-3 text-left font-semibold border-b">Email</th>
+                                    <th class="py-2 px-3 text-left font-semibold border-b">Password</th>
+                                    <th class="py-2 px-3 text-left font-semibold border-b">License Key</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="item in history" :key="item.id">
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-2 px-3 text-gray-500" x-text="formatDate(item.timestamp)"></td>
+                                        <td class="py-2 px-3">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs" x-text="item.license_name || 'Account'"></span>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="flex items-center">
+                                                <span x-text="item.email" class="mr-2"></span>
+                                                <button @click="copyToClipboard(item.email)" class="text-gray-400 hover:text-gray-700" title="Copy">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="flex items-center">
+                                                <span x-text="item.password" class="mr-2 font-mono"></span>
+                                                <button @click="copyToClipboard(item.password)" class="text-gray-400 hover:text-gray-700" title="Copy">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <template x-if="item.license_key">
+                                                <div class="flex items-center">
+                                                    <span x-text="item.license_key" class="mr-2 font-mono font-medium text-green-600"></span>
+                                                    <button @click="copyToClipboard(item.license_key)" class="text-gray-400 hover:text-gray-700" title="Copy">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                            <template x-if="!item.license_key">
+                                                <span class="text-gray-400 text-xs italic">N/A</span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="history.length === 0">
+                                    <td colspan="5" class="py-4 text-center text-gray-500 italic">No generation history found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toast Notification -->
+        <div x-show="toast.show" x-transition.opacity class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg flex items-center z-50">
+            <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script>
+        function keygenApp() {
+            return {
+                config: {
+                    mode: 'key',
+                    email_api: 'emailfake',
+                    browser: 'auto',
+                    no_headless: false,
+                    skip_update_check: false,
+                    custom_email_api: false
+                },
+                isRunning: false,
+                logs: [],
+                history: [],
+                ws: null,
+                toast: { show: false, message: '' },
+
+                init() {
+                    this.fetchConfig();
+                    this.fetchHistory();
+                },
+
+                async fetchConfig() {
+                    try {
+                        const response = await fetch('/api/config');
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (Object.keys(data).length > 0) {
+                                this.config = { ...this.config, ...data };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch config:', error);
+                    }
+                },
+
+                async fetchHistory() {
+                    try {
+                        const response = await fetch('/api/history');
+                        if (response.ok) {
+                            this.history = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch history:', error);
+                    }
+                },
+
+                async startGeneration() {
+                    if (this.isRunning) return;
+                    
+                    this.isRunning = true;
+                    this.clearLogs();
+                    
+                    // Connect WebSocket for logs
+                    this.connectWebSocket();
+
+                    try {
+                        const response = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.config)
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        // The backend will process and eventually close the websocket when done
+                    } catch (error) {
+                        console.error('Generation failed to start:', error);
+                        this.logs.push(`[ERROR] Failed to start generation: ${error.message}`);
+                        this.isRunning = false;
+                        if(this.ws) this.ws.close();
+                    }
+                },
+
+                async stopGeneration() {
+                    if (!this.isRunning) return;
+                    
+                    try {
+                        const response = await fetch('/api/stop', { method: 'POST' });
+                        if (response.ok) {
+                            this.logs.push('[INFO] Stop signal sent.');
+                        }
+                    } catch (error) {
+                        console.error('Failed to stop:', error);
+                    }
+                },
+
+                connectWebSocket() {
+                    // Determine ws protocol based on current protocol
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/ws/logs`;
+                    
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => {
+                        this.logs.push('[SYSTEM] Connected to log stream.');
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        this.logs.push(event.data);
+                        this.scrollToBottom();
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.logs.push('[SYSTEM] Log stream closed.');
+                        this.isRunning = false;
+                        this.fetchHistory(); // Refresh history when done
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.logs.push('[SYSTEM] WebSocket error occurred.');
+                        this.isRunning = false;
+                    };
+                },
+
+                clearLogs() {
+                    this.logs = [];
+                },
+
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = document.getElementById('log-container');
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                },
+
+                formatDate(isoString) {
+                    const date = new Date(isoString);
+                    return date.toLocaleString();
+                },
+
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showToast('Copied to clipboard!');
+                    });
+                },
+
+                showToast(message) {
+                    this.toast.message = message;
+                    this.toast.show = true;
+                    setTimeout(() => { this.toast.show = false; }, 3000);
+                },
+
+                // Basic ANSI to HTML formatter
+                formatLog(text) {
+                    if (!text) return '';
+                    
+                    // Prevent HTML injection
+                    let escaped = text.replace(/&/g, '&amp;')
+                                      .replace(/</g, '&lt;')
+                                      .replace(/>/g, '&gt;');
+                                      
+                    // Very basic ANSI color replacement
+                    escaped = escaped.replace(/\x1b\[31m/g, '<span class="ansi-red">')
+                                     .replace(/\x1b\[32m/g, '<span class="ansi-green">')
+                                     .replace(/\x1b\[33m/g, '<span class="ansi-yellow">')
+                                     .replace(/\x1b\[34m/g, '<span class="ansi-blue">')
+                                     .replace(/\x1b\[35m/g, '<span class="ansi-magenta">')
+                                     .replace(/\x1b\[36m/g, '<span class="ansi-cyan">')
+                                     .replace(/\x1b\[37m/g, '<span class="ansi-white">')
+                                     .replace(/\x1b\[91m/g, '<span class="ansi-red">') // Bright red
+                                     .replace(/\x1b\[95m/g, '<span class="ansi-magenta">') // Bright magenta
+                                     .replace(/\x1b\[0m/g, '</span>')
+                                     .replace(/\x1b\[39m/g, '</span>');
+                                     
+                    // Clean up unhandled escapes
+                    escaped = escaped.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+                    
+                    return escaped;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
