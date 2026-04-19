@@ -1,3 +1,6 @@
 selenium
 requests
 colorama
+fastapi
+uvicorn
+websockets
