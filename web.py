@@ -99,6 +99,7 @@ def get_history() -> List[dict]:
     cursor.execute("SELECT * FROM history ORDER BY id DESC")
     rows = cursor.fetchall()
     conn.close()
+    return [dict(row) for row in rows]
 
 # Active subprocess reference
 current_process = None
@@ -267,6 +268,10 @@ async def stream_output_and_parse(process: subprocess.Popen):
         if email and password:
             save_history(email, password, license_name, license_key)
             await broadcast_log("[SYSTEM] Saved generated credentials to history database.")
+        else:
+            await broadcast_log(
+                f"[SYSTEM] Parse incomplete; history not saved (email_found={bool(email)}, password_found={bool(password)})."
+            )
             
     except Exception as e:
         await broadcast_log(f"[SYSTEM ERROR] {str(e)}")
@@ -289,4 +294,3 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("web:app", host="0.0.0.0", port=8000, reload=True)
-
