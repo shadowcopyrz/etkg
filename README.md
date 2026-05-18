@@ -137,6 +137,38 @@ Delete your current ESET HOME account
 5. [Updater](wiki/Updater.md)
 6. [Installer](wiki/Installer.md)
 7. [MBCI (Menu-based Сonsole Interface)](wiki/MBCI-Inferface.md)
+8. [Web UI (FastAPI based)](wiki/WebUI.md)
+
+---
+
+## 5. Web UI Usage
+You can now use a web interface to generate ESET keys and accounts.
+
+### Prerequisites
+Make sure you have installed the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Running the Web Server
+Execute the following command to start the web server:
+```bash
+python web.py
+```
+Or if you are using `uvicorn` directly:
+```bash
+uvicorn web:app --host 0.0.0.0 --port 8000
+```
+
+### Accessing the UI
+Open your browser and navigate to:
+`http://localhost:8000`
+
+The Web UI allows you to:
+- Select generation modes and email APIs via dropdowns.
+- View real-time execution logs through WebSockets.
+- Access a history of all generated accounts and keys stored in a local SQLite database.
+- Automatically save and load your last-used configuration.
 ---
 
 # Additional information
