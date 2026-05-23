@@ -27,7 +27,7 @@ if ('--disable-logging' not in sys.argv and not MBCI_MODE) or ('--disable-loggin
 from modules.EmailAPIs import *
 
 # ---- Quick settings [for Developers to quickly change behavior without changing all files] ----
-VERSION = ['v1.5.6.4', 1564]
+VERSION = ['v1.5.6.3', 1563]
 LOGO = f"""
 ███████╗███████╗███████╗████████╗   ██╗  ██╗███████╗██╗   ██╗ ██████╗ ███████╗███╗   ██╗
 ██╔════╝██╔════╝██╔════╝╚══██╔══╝   ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝ ██╔════╝████╗  ██║
@@ -216,6 +216,8 @@ class MBCIConfigManager:
                 all_args[key.replace('-', '_')] = value
 
             for key, value in all_args.items():
+                if key == 'return_exit_code' and all_args[key] == ARGS_DEFAULT[key]:
+                    continue
                 if (isinstance(value, bool) and not value) or (key in MBCI_OTHER_ARGS and all_args[key] == ARGS_DEFAULT[key]):
                     continue
                 config_sys_argv.append('--'+key.replace('_', '-'))
