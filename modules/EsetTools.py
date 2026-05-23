@@ -398,9 +398,10 @@ class EsetProtectHubKeygen(object):
             logging.info('Getting information from the license...')
             console_log(f'License ID: {license_id}', OK, silent_mode=SILENT_MODE)
             console_log('\nGetting information from the license...', INFO, silent_mode=SILENT_MODE)
-            self.driver.get(f'https://protecthub.eset.com/licenses/details/2/{license_id}/overview')
+            self.driver.get(f'https://protecthub.eset.com/subscriptions/details/2/{license_id}/overview')
             uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "license-overview-key-value") != null')
             license_out_date = exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\nreturn {GET_EBAV}("div", "data-label", "license-overview-validity-value").children[0].children[0].innerText')
+            license_out_date = license_out_date.replace('/', '.')
             # Obtaining license key
             exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\n{GET_EBAV}("div", "data-label", "license-overview-key-value").children[0].children[0].click()')
             uCE(self.driver, f'return {GET_EBID}("show-license-key-auth-modal-password-input") != null')
