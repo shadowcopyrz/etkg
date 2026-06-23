@@ -25,15 +25,15 @@ class EsetRegister(object):
         exec_js = self.driver.execute_script
         uCE = untilConditionExecute
         
-        logging.info('[EMAIL] Register page loading...')
-        console_log('\n[EMAIL] Register page loading...', INFO, silent_mode=SILENT_MODE)
+        logging.info('Register page loading...')
+        console_log('\nRegister page loading...', INFO, silent_mode=SILENT_MODE)
         if isinstance(self.email_obj, WEB_WRAPPER_EMAIL_APIS_CLASSES):
             self.driver.switch_to.new_window('tab')
             self.window_handle = self.driver.current_window_handle
         self.driver.get('https://login.eset.com/Register')
         uCE(self.driver, f"return {GET_EBID}('email') != null")
-        logging.info('[EMAIL] Register page is loaded!')
-        console_log('[EMAIL] Register page is loaded!', OK, silent_mode=SILENT_MODE)
+        logging.info('Register page is loaded!')
+        console_log('Register page is loaded!', OK, silent_mode=SILENT_MODE)
 
         logging.info('Bypassing cookies...')
         console_log('\nBypassing cookies...', INFO, silent_mode=SILENT_MODE)
@@ -44,21 +44,12 @@ class EsetRegister(object):
         else:
             logging.info('Cookies were not bypassed (it doesn\'t affect the algorithm, I think :D)')
             console_log("Cookies were not bypassed (it doesn't affect the algorithm, I think :D)", ERROR, silent_mode=SILENT_MODE)
-
+        
+        logging.info('Data filling...')
+        console_log('\nData filling...', INFO, silent_mode=SILENT_MODE)
+        
         exec_js(f"return {GET_EBID}('email')").send_keys(self.email_obj.email)
-        uCE(self.driver, f"return {CLICK_WITH_BOOL}({DEFINE_GET_EBAV_FUNCTION}('button', 'data-label', 'register-continue-button'))")
-        time.sleep(1)
-        try:
-            if exec_js(f"return {GET_EBAV}('div', 'data-label', 'register-email-formGroup-validation')") is not None:
-                raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
-        except:
-            pass
-  
-        logging.info('[PASSWD] Register page loading...')
-        console_log('\n[PASSWD] Register page loading...', INFO, silent_mode=SILENT_MODE)
-        uCE(self.driver, f"return typeof {GET_EBAV}('button', 'data-label', 'register-create-account-button') === 'object'")
-        logging.info('[PASSWD] Register page is loaded!')
-        console_log('[PASSWD] Register page is loaded!', OK, silent_mode=SILENT_MODE)
+        time.sleep(0.5)
         exec_js(f"return {GET_EBID}('password')").send_keys(self.eset_password)
         
         # Select Ukraine country
@@ -77,10 +68,19 @@ class EsetRegister(object):
             title = exec_js('return document.title')
             if title == 'Service not available':
                 raise IPBlockedException('\nESET temporarily blocked your IP, try again later!!! Try to use VPN/Proxy or try to change Email API!!!')
+            
             url = exec_js('return document.URL')
             if url == 'https://home.eset.com/':
+                logging.info('Successfully!')
+                console_log('Successfully!', OK, silent_mode=SILENT_MODE)
                 return True
+            
+            page_source = self.driver.page_source
+            if 'This email address is already registered' in page_source:
+                raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
+            
             time.sleep(DEFAULT_DELAY)
+        
         raise IPBlockedException('\nESET temporarily blocked your IP, try again later!!! Try to use VPN/Proxy or try to change Email API!!!')
 
     def confirmAccount(self):

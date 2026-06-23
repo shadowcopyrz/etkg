@@ -1,11 +1,11 @@
 <div align="center">
   <img src="https://github.com/shadowcopyrz/etkg/blob/main/img/logo_alt.png?raw=true" alt="logo"/>
     
-  ![Version](https://img.shields.io/badge/version-1.5.6.4-gold)
+  ![Version](https://img.shields.io/badge/version-1.5.6.5-gold)
   
   [![Commit activity](https://img.shields.io/github/commit-activity/t/shadowcopyrz/etkg/main?cacheSeconds=0)](https://github.com/shadowcopyrz/etkg/commits/main)
   ![Last commit](https://img.shields.io/github/last-commit/shadowcopyrz/etkg/main?cacheSeconds=0)
-  ![Last test](https://img.shields.io/badge/last_test-23.06.2026_06:37_UTC+3-blue)
+  ![Last test](https://img.shields.io/badge/last_test-23.06.2026_18:15_UTC+3-blue)
   [![Opened issues](https://img.shields.io/github/issues/shadowcopyrz/etkg?color=darkred)](https://github.com/shadowcopyrz/etkg/issues?cacheSeconds=0)
   [![Closed issues](https://img.shields.io/github/issues-closed/shadowcopyrz/etkg?color=darkgreen&cacheSeconds=0)](https://github.com/shadowcopyrz/etkg/issues?q=is%3Aissue+is%3Aclosed)
   ![License](https://img.shields.io/github/license/shadowcopyrz/etkg)
