@@ -129,7 +129,7 @@ class EsetKeygen(object):
 
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn'))")
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-add-subscription-protect-card-trial'))")
-        self.__press_button_with_text('continue')
+        self.__press_button_with_text(['continue', 'continua'])
     
         uCE(self.driver, f"return {GET_EBAV}('label', 'data-label', 'onboarding-trial-protect-card-148') != null")
         if self.mode == 'ESET HOME':
@@ -137,7 +137,7 @@ class EsetKeygen(object):
         elif self.mode == 'SMALL BUSINESS':
             uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-trial-protect-card-172'))")
         try:
-            self.__press_button_with_text('continue')
+            self.__press_button_with_text(['continue', 'continua'])
             uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
             logging.info(f'[{self.mode}] Response successfully received!')
             console_log(f'[{self.mode}] Response successfully received!', OK, silent_mode=SILENT_MODE)
@@ -152,7 +152,7 @@ class EsetKeygen(object):
 
         # upd 21.10.2025
         time.sleep(0.5)
-        self.__press_button_with_text('continue')
+        self.__press_button_with_text(['continue', 'continua'])
         uCE(self.driver, f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input') != null")
         try:
             input_field = exec_js(f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input')")
@@ -161,16 +161,16 @@ class EsetKeygen(object):
             raise RuntimeError('Error when filling out form!!!')
         
         time.sleep(0.5)
-        self.__press_button_with_text('continue')
+        self.__press_button_with_text(['continue', 'continua'])
         uCE(self.driver, f"return {GET_EBAV}('span', 'data-identifier', 'ec.status.check') != null")
         time.sleep(0.5)
-        self.__press_button_with_text('continue')
+        self.__press_button_with_text(['continue', 'continua'])
 
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-members-me-option'))")
-        self.__press_button_with_text('continue')
+        self.__press_button_with_text(['continue', 'continua'])
 
         uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'onboarding-protect-this-device-card') != null")
-        self.__press_button_with_text('finish for now')
+        self.__press_button_with_text(['finish for now', 'termina per ora', 'finisci per ora'])
         time.sleep(0.5)
 
         # base
@@ -190,14 +190,24 @@ class EsetKeygen(object):
         console_log('Information successfully received!', OK, silent_mode=SILENT_MODE)
         return license_name, license_key, license_out_date
 
-    def __press_button_with_text(self, text: str):
-        for button in self.driver.find_elements('tag name', 'button'):
-            if button.get_attribute('innerText').strip().lower() == text:
-                button.click()
-                break
-            time.sleep(0.05)
-        else:
-            raise RuntimeError(f'Press button with text ({text}) error!!!')
+    def __press_button_with_text(self, text, max_iter=DEFAULT_MAX_ITER, delay=DEFAULT_DELAY):
+        targets = [t.lower() for t in (text if isinstance(text, list) else [text])]
+        for attempt in range(max_iter):
+            buttons = self.driver.find_elements('tag name', 'button')
+            texts = [b.get_attribute('innerText') or '' for b in buttons]
+            if attempt == max_iter - 1:
+                logging.warning(f'[__press_button_with_text] looking for {targets}, found buttons: {[t.strip() for t in texts if t.strip()]}')
+            for button, btn_text in zip(buttons, texts):
+                if btn_text.strip().lower() in targets:
+                    if button.get_attribute('disabled') or button.get_attribute('aria-disabled') == 'true':
+                        break
+                    try:
+                        button.click()
+                    except Exception:
+                        self.driver.execute_script("arguments[0].click();", button)
+                    return
+            time.sleep(delay)
+        raise RuntimeError(f'Press button with text ({text}) error!!!')
     
     def __wait_text_on_page(self, text: str, max_iter = DEFAULT_MAX_ITER, delay = DEFAULT_DELAY):
         for _ in range(max_iter):
