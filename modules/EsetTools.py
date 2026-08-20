@@ -139,6 +139,12 @@ class EsetKeygen(object):
         try:
             self.__press_button_with_text('continue')
             uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
+            
+            # upd 20.08.2026
+            time.sleep(0.5)
+            self.__press_button_with_text('continue')
+            uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'available-protection-card-expand-btn') != null")
+            
             logging.info(f'[{self.mode}] Response successfully received!')
             console_log(f'[{self.mode}] Response successfully received!', OK, silent_mode=SILENT_MODE)
         except:
@@ -149,29 +155,6 @@ class EsetKeygen(object):
         uCE = untilConditionExecute
         logging.info(f'License uploads...')
         console_log('\nLicense uploads...', INFO, silent_mode=SILENT_MODE)
-
-        # upd 21.10.2025
-        time.sleep(0.5)
-        self.__press_button_with_text('continue')
-        uCE(self.driver, f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input') != null")
-        try:
-            input_field = exec_js(f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input')")
-            input_field.send_keys(dataGenerator(random.randint(6, 12)))
-        except:
-            raise RuntimeError('Error when filling out form!!!')
-        
-        time.sleep(0.5)
-        self.__press_button_with_text('continue')
-        uCE(self.driver, f"return {GET_EBAV}('span', 'data-identifier', 'ec.status.check') != null")
-        time.sleep(0.5)
-        self.__press_button_with_text('continue')
-
-        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-members-me-option'))")
-        self.__press_button_with_text('continue')
-
-        uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'onboarding-protect-this-device-card') != null")
-        self.__press_button_with_text('finish for now')
-        time.sleep(0.5)
 
         # base
         self.driver.get('https://home.eset.com/subscriptions')
