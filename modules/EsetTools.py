@@ -143,8 +143,8 @@ class EsetKeygen(object):
             # upd 20.08.2026
             time.sleep(0.5)
             self.__press_button_with_text('continue')
-            uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'available-protection-card-expand-btn') != null")
-            
+            uCE(self.driver, f"return document.URL == 'https://home.eset.com/onboarding/download'", max_iter=10)
+
             logging.info(f'[{self.mode}] Response successfully received!')
             console_log(f'[{self.mode}] Response successfully received!', OK, silent_mode=SILENT_MODE)
         except:
@@ -209,7 +209,7 @@ class EsetProtectHubRegister(object):
             self.window_handle = self.driver.current_window_handle
         self.driver.get('https://protecthub.eset.com/public/registration?culture=en-US')
         uCE(self.driver, f'return {GET_EBID}("continue") != null')
-        untilConditionExecute(self.driver, f'return {CLICK_WITH_BOOL}({GET_EBID}("cc-accept"))', max_iter=10)
+        uCE(self.driver, f'return {CLICK_WITH_BOOL}({GET_EBID}("cc-accept"))', max_iter=10)
         logging.info('Successfully!')
         console_log('Successfully!', OK, silent_mode=SILENT_MODE)
 
