@@ -27,7 +27,7 @@ if ('--disable-logging' not in sys.argv and not MBCI_MODE) or ('--disable-loggin
 from modules.EmailAPIs import *
 
 # ---- Quick settings [for Developers to quickly change behavior without changing all files] ----
-VERSION = ['v1.5.6.6', 1566]
+VERSION = ['v1.5.6.7', 1567]
 LOGO = f"""
 ███████╗███████╗███████╗████████╗   ██╗  ██╗███████╗██╗   ██╗ ██████╗ ███████╗███╗   ██╗
 ██╔════╝██╔════╝██╔════╝╚══██╔══╝   ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝ ██╔════╝████╗  ██║
@@ -41,7 +41,7 @@ LOGO = f"""
                                                               soladify, AngryBonk, Xoncia,
                                                               Anteneh13, otre4, AHDR3,
                                                               Shariful797, ImHisako,
-                                                              ppsmurf, ugvfpdcuwfnh
+                                                              ppsmurf, ugvfpdcuwfnh, chrisdaloa
                                                 Telegram: https://t.me/rzc0d3r_official
 """
 if '--no-logo' in sys.argv:
