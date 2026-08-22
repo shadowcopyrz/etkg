@@ -25,15 +25,15 @@ class EsetRegister(object):
         exec_js = self.driver.execute_script
         uCE = untilConditionExecute
         
-        logging.info('[EMAIL] Register page loading...')
-        console_log('\n[EMAIL] Register page loading...', INFO, silent_mode=SILENT_MODE)
+        logging.info('Register page loading...')
+        console_log('\nRegister page loading...', INFO, silent_mode=SILENT_MODE)
         if isinstance(self.email_obj, WEB_WRAPPER_EMAIL_APIS_CLASSES):
             self.driver.switch_to.new_window('tab')
             self.window_handle = self.driver.current_window_handle
         self.driver.get('https://login.eset.com/Register')
         uCE(self.driver, f"return {GET_EBID}('email') != null")
-        logging.info('[EMAIL] Register page is loaded!')
-        console_log('[EMAIL] Register page is loaded!', OK, silent_mode=SILENT_MODE)
+        logging.info('Register page is loaded!')
+        console_log('Register page is loaded!', OK, silent_mode=SILENT_MODE)
 
         logging.info('Bypassing cookies...')
         console_log('\nBypassing cookies...', INFO, silent_mode=SILENT_MODE)
@@ -44,21 +44,12 @@ class EsetRegister(object):
         else:
             logging.info('Cookies were not bypassed (it doesn\'t affect the algorithm, I think :D)')
             console_log("Cookies were not bypassed (it doesn't affect the algorithm, I think :D)", ERROR, silent_mode=SILENT_MODE)
-
+        
+        logging.info('Data filling...')
+        console_log('\nData filling...', INFO, silent_mode=SILENT_MODE)
+        
         exec_js(f"return {GET_EBID}('email')").send_keys(self.email_obj.email)
-        uCE(self.driver, f"return {CLICK_WITH_BOOL}({DEFINE_GET_EBAV_FUNCTION}('button', 'data-label', 'register-continue-button'))")
-        time.sleep(1)
-        try:
-            if exec_js(f"return {GET_EBAV}('div', 'data-label', 'register-email-formGroup-validation')") is not None:
-                raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
-        except:
-            pass
-  
-        logging.info('[PASSWD] Register page loading...')
-        console_log('\n[PASSWD] Register page loading...', INFO, silent_mode=SILENT_MODE)
-        uCE(self.driver, f"return typeof {GET_EBAV}('button', 'data-label', 'register-create-account-button') === 'object'")
-        logging.info('[PASSWD] Register page is loaded!')
-        console_log('[PASSWD] Register page is loaded!', OK, silent_mode=SILENT_MODE)
+        time.sleep(0.5)
         exec_js(f"return {GET_EBID}('password')").send_keys(self.eset_password)
         
         # Select Ukraine country
@@ -77,10 +68,19 @@ class EsetRegister(object):
             title = exec_js('return document.title')
             if title == 'Service not available':
                 raise IPBlockedException('\nESET temporarily blocked your IP, try again later!!! Try to use VPN/Proxy or try to change Email API!!!')
+            
             url = exec_js('return document.URL')
             if url == 'https://home.eset.com/':
+                logging.info('Successfully!')
+                console_log('Successfully!', OK, silent_mode=SILENT_MODE)
                 return True
+            
+            page_source = self.driver.page_source
+            if 'This email address is already registered' in page_source:
+                raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
+            
             time.sleep(DEFAULT_DELAY)
+        
         raise IPBlockedException('\nESET temporarily blocked your IP, try again later!!! Try to use VPN/Proxy or try to change Email API!!!')
 
     def confirmAccount(self):
@@ -96,12 +96,14 @@ class EsetRegister(object):
                 self.driver.switch_to.window(self.window_handle)
             else:
                 token = parseToken(self.email_obj, max_iter=100, delay=3) # 1secmail, developermail
+        
         logging.info(f'ESET-HOME-Token: {token}')
         logging.info('Account confirmation is in progress...')
         console_log(f'ESET-HOME-Token: {token}', OK, silent_mode=SILENT_MODE)
         console_log('\nAccount confirmation is in progress...', INFO, silent_mode=SILENT_MODE)
         self.driver.get(f'https://login.eset.com/link/confirmregistration?token={token}')
         uCE(self.driver, 'return document.title.includes("ESET HOME")')
+        
         try:
             uCE(self.driver, f'return {GET_EBCN}("verification-email_p").length === 0')
         except:
@@ -109,6 +111,7 @@ class EsetRegister(object):
             uCE(self.driver, 'return document.title.includes("ESET HOME")')
             uCE(self.driver, f'return {GET_EBCN}("verification-email_p").length === 0')
             uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn'))")
+        
         logging.info('Account successfully confirmed!')
         console_log('Account successfully confirmed!', OK, silent_mode=SILENT_MODE)
         return True
@@ -139,6 +142,12 @@ class EsetKeygen(object):
         try:
             self.__press_button_with_text(['continue', 'continua'])
             uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
+            
+            # upd 22.08.2026
+            time.sleep(0.5)
+            self.__press_button_with_text(['continue', 'continua'])
+            uCE(self.driver, f"return document.URL == 'https://home.eset.com/onboarding/download'", max_iter=10)
+
             logging.info(f'[{self.mode}] Response successfully received!')
             console_log(f'[{self.mode}] Response successfully received!', OK, silent_mode=SILENT_MODE)
         except:
@@ -150,29 +159,6 @@ class EsetKeygen(object):
         logging.info(f'License uploads...')
         console_log('\nLicense uploads...', INFO, silent_mode=SILENT_MODE)
 
-        # upd 21.10.2025
-        time.sleep(0.5)
-        self.__press_button_with_text(['continue', 'continua'])
-        uCE(self.driver, f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input') != null")
-        try:
-            input_field = exec_js(f"return {GET_EBAV}('input', 'data-label', 'member-add-account-owner-input-input')")
-            input_field.send_keys(dataGenerator(random.randint(6, 12)))
-        except:
-            raise RuntimeError('Error when filling out form!!!')
-        
-        time.sleep(0.5)
-        self.__press_button_with_text(['continue', 'continua'])
-        uCE(self.driver, f"return {GET_EBAV}('span', 'data-identifier', 'ec.status.check') != null")
-        time.sleep(0.5)
-        self.__press_button_with_text(['continue', 'continua'])
-
-        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-members-me-option'))")
-        self.__press_button_with_text(['continue', 'continua'])
-
-        uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'onboarding-protect-this-device-card') != null")
-        self.__press_button_with_text(['finish for now', 'termina per ora', 'finisci per ora'])
-        time.sleep(0.5)
-
         # base
         self.driver.get('https://home.eset.com/subscriptions')
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'license-list-open-detail-page-btn'))")
@@ -180,16 +166,20 @@ class EsetKeygen(object):
         if self.driver.current_url.find('detail') != -1:
             logging.info(f'License ID: {self.driver.current_url[-11:]}')
             console_log(f'License ID: {self.driver.current_url[-11:]}', OK, silent_mode=SILENT_MODE)
+        
         uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'license-detail-product-name') != null", max_iter=10)
         uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'license-detail-license-model-additional-info') != null", max_iter=10)
         uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'license-detail-license-key') != null", max_iter=10)
+        
         license_name = exec_js(f"return {GET_EBAV}('div', 'data-label', 'license-detail-product-name').innerText")
         license_out_date = exec_js(f"return {GET_EBAV}('div', 'data-label', 'license-detail-license-model-additional-info').innerText")
         license_key = exec_js(f"return {GET_EBAV}('div', 'data-label', 'license-detail-license-key').innerText")
+        
         logging.info('Information successfully received!')
         console_log('Information successfully received!', OK, silent_mode=SILENT_MODE)
         return license_name, license_key, license_out_date
-
+  
+    # fix: handle disabled buttons and add Italian UI language support - #14
     def __press_button_with_text(self, text, max_iter=DEFAULT_MAX_ITER, delay=DEFAULT_DELAY):
         targets = [t.lower() for t in (text if isinstance(text, list) else [text])]
         for attempt in range(max_iter):
@@ -227,8 +217,8 @@ class EsetProtectHubRegister(object):
     def createAccount(self):
         exec_js = self.driver.execute_script
         uCE = untilConditionExecute
+        
         # STEP 0
-
         logging.info('Loading ESET ProtectHub Page...')
         console_log('\nLoading ESET ProtectHub Page...', INFO, silent_mode=SILENT_MODE)
         if isinstance(self.email_obj, WEB_WRAPPER_EMAIL_APIS_CLASSES):
@@ -236,7 +226,7 @@ class EsetProtectHubRegister(object):
             self.window_handle = self.driver.current_window_handle
         self.driver.get('https://protecthub.eset.com/public/registration?culture=en-US')
         uCE(self.driver, f'return {GET_EBID}("continue") != null')
-        untilConditionExecute(self.driver, f'return {CLICK_WITH_BOOL}({GET_EBID}("cc-accept"))', max_iter=10)
+        uCE(self.driver, f'return {CLICK_WITH_BOOL}({GET_EBID}("cc-accept"))', max_iter=10)
         logging.info('Successfully!')
         console_log('Successfully!', OK, silent_mode=SILENT_MODE)
 
@@ -260,6 +250,7 @@ class EsetProtectHubRegister(object):
         exec_js(f'return {GET_EBID}("company-crn-input")').send_keys(dataGenerator(10, True))
         logging.warning('Solve the captcha on the page manually!!!')
         console_log(f'\n{colorama.Fore.CYAN}Solve the captcha on the page manually!!!{colorama.Fore.RESET}', INFO, False, SILENT_MODE)
+        
         while True: # captcha
             try:
                 mtcaptcha_solved_token = exec_js(f'return {GET_EBCN}("mtcaptcha-verifiedtoken")[0].value')
@@ -269,6 +260,7 @@ class EsetProtectHubRegister(object):
                 pass
             time.sleep(1)
         exec_js(f'return {GET_EBID}("continue").click()')
+        
         try:
             uCE(self.driver, f'return {GET_EBID}("registration-email-sent").innerText === "We sent you a verification email"', max_iter=15)
             logging.info('Successfully!')
@@ -311,6 +303,7 @@ class EsetProtectHubRegister(object):
                 self.driver.switch_to.window(self.window_handle)
             else:
                 token = parseToken(self.email_obj, eset_business=True, max_iter=100, delay=3) # 1secmail
+        
         logging.info(f'ProtectHub-Token: {token}')
         logging.info('Account confirmation is in progress...')
         console_log(f'ProtectHub-Token: {token}', OK, silent_mode=SILENT_MODE)
@@ -412,6 +405,7 @@ class EsetProtectHubKeygen(object):
             uCE(self.driver, f'return {GET_EBAV}("div", "data-label", "license-overview-key-value") != null')
             license_out_date = exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\nreturn {GET_EBAV}("div", "data-label", "license-overview-validity-value").children[0].children[0].innerText')
             license_out_date = license_out_date.replace('/', '.')
+            
             # Obtaining license key
             exec_js(f'{DEFINE_GET_EBAV_FUNCTION}\n{GET_EBAV}("div", "data-label", "license-overview-key-value").children[0].children[0].click()')
             uCE(self.driver, f'return {GET_EBID}("show-license-key-auth-modal-password-input") != null')
@@ -435,6 +429,7 @@ class EsetProtectHubKeygen(object):
         except Exception as E:
             logging.critical("EXC_INFO:", exc_info=True)
             console_log('Error when obtaining a license key from the site!!!', ERROR, silent_mode=SILENT_MODE)
+        
         # Obtaining license data from the email
         logging.info('[Email] License uploads...')
         console_log('\n[Email] License uploads...', INFO, silent_mode=SILENT_MODE)
