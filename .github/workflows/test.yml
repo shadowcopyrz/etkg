@@ -19,7 +19,7 @@ on:
         - inboxes
         - incognitomail
         - emailfake
-        default: emailfake
+        default: fakemail
 jobs:
   Test:
     runs-on: ubuntu-latest
