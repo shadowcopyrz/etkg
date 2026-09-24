@@ -44,7 +44,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install charset_normalizer pyinstaller -r requirements.txt
-          pyinstaller --onefile --clean --target-arch universal2 main.py
+          pyinstaller --onefile --clean --target-arch universal2 main.py --hidden-import charset_normalizer
           chmod a+x ./dist/main
           mv ./dist/main "./ESET-KeyGen_v${{ inputs.version }}_macos"
 
@@ -75,14 +75,14 @@ jobs:
           Expand-Archive -Path "python-portable.zip" -DestinationPath .
           .\python.exe -m pip install --upgrade pip --no-warn-script-location
           .\python.exe -m pip install pyinstaller -r ../requirements.txt --no-warn-script-location
-          Scripts\pyinstaller.exe --onefile --collect-data selenium_stealth --add-data ..\dll_patch\api-ms-win-core-path-blender\x86\api-ms-win-core-path-l1-1-0.dll:. ../main.py
+          Scripts\pyinstaller.exe --onefile --hidden-import charset_normalizer --collect-data selenium_stealth --add-data ..\dll_patch\api-ms-win-core-path-blender\x86\api-ms-win-core-path-l1-1-0.dll:. ../main.py
           Move-Item -Path .\dist\main.exe -Destination "../ESET-KeyGen_v${{ inputs.version }}_win32.exe"
 
       - name: Compile win64
         run: |
           pip install --upgrade pip
           pip install pyinstaller -r requirements.txt
-          pyinstaller --onefile --collect-data selenium_stealth --collect-all selenium --add-data dll_patch\api-ms-win-core-path-blender\x64\api-ms-win-core-path-l1-1-0.dll:. main.py
+          pyinstaller --onefile --hidden-import charset_normalizer --collect-data selenium_stealth --collect-all selenium --add-data dll_patch\api-ms-win-core-path-blender\x64\api-ms-win-core-path-l1-1-0.dll:. main.py
           Move-Item -Path .\dist\main.exe -Destination "ESET-KeyGen_v${{ inputs.version }}_win64.exe"
 
       - name: Upload Windows artifacts
