@@ -10,13 +10,10 @@ MOZILLA_FIREFOX_RE = r'(\d+\.\d+\.\d+)|(\d+\.\d+)'
 WATERFOX_RE = r'(\d+\.\d+\.\d+)|(\d+\.\d+)'
 APPLE_SAFARI_RE = r'\d+.\d+.\d+'
 
-from .SharedTools import console_log, INFO, OK, ERROR, WARN
-from .ProgressBar import ProgressBar, DEFAULT_RICH_STYLE
+from modules.ProgressBar import ProgressBar, DEFAULT_RICH_STYLE
+from modules.utils.logger import *
 
 from pathlib import Path
-
-from colorama import Fore, init
-init()
 
 import subprocess
 import platform
@@ -28,8 +25,6 @@ import shutil
 import sys
 import re
 import os
-
-SILENT_MODE = '--silent' in sys.argv
 
 class WebDriverInstaller(object):
     def __init__(self, browser_name: str, custom_browser_location=None):
@@ -398,20 +393,20 @@ class WebDriverInstaller(object):
             if driver_url is not None:
                 logging.info('Found a suitable version for your system!')
                 logging.info('Downloading...')
-                console_log('\nFound a suitable version for your system!', OK, silent_mode=SILENT_MODE)
-                console_log('Downloading...', INFO, silent_mode=SILENT_MODE)
+                console_log('\nFound a suitable version for your system!', OK)
+                console_log('Downloading...', INFO)
                 if self.download_webdriver(driver_url, disable_progress_bar=disable_progress_bar):
                     logging.info(f'{self.browser_name} webdriver was successfully downloaded and unzipped!')
-                    console_log(f'{self.browser_name} webdriver was successfully downloaded and unzipped!\n', OK, silent_mode=SILENT_MODE)
+                    console_log(f'{self.browser_name} webdriver was successfully downloaded and unzipped!\n', OK)
                     return os.path.join(os.getcwd(), webdriver_name)
                 else:
                     logging.info('Error downloading or unpacking!')
-                    console_log('Error downloading or unpacking!\n', ERROR, silent_mode=SILENT_MODE)
+                    console_log('Error downloading or unpacking!\n', ERROR)
             else:
                 logging.info('A suitable version for your system was not found!')
-                console_log('\nA suitable version for your system was not found!\n', ERROR, silent_mode=SILENT_MODE)
-        logging.info('-- WebDriver Auto-Installer --')
-        console_log(f'{Fore.LIGHTMAGENTA_EX}-- WebDriver Auto-Installer --{Fore.RESET}\n', silent_mode=SILENT_MODE)
+                console_log('\nA suitable version for your system was not found!\n', ERROR)
+        logging.info('-- [Legacy] WebDriver Auto-Installer --')
+        console_log(f'{Fore.LIGHTMAGENTA_EX}-- [Legacy] WebDriver Auto-Installer --{Fore.RESET}\n')
         browser_version, browser_path = self.browser_data[2]()
         if browser_version is None:
             if self.custom_browser_location is None or self.custom_browser_location == '':
@@ -437,11 +432,11 @@ class WebDriverInstaller(object):
             latest_geckodriver_version = self.browser_data[0](True)
             if current_webdriver_version == latest_geckodriver_version:
                 logging.info('The webdriver has already been updated to the latest version!')
-                console_log('The webdriver has already been updated to the latest version!\n', OK, silent_mode=SILENT_MODE)
+                console_log('The webdriver has already been updated to the latest version!\n', OK)
                 webdriver_path = os.path.join(os.getcwd(), webdriver_name)
             else:
                 logging.info(f'Updating the webdriver from {current_webdriver_version} to {latest_geckodriver_version} version...')
-                console_log(f'Updating the webdriver from {current_webdriver_version} to {latest_geckodriver_version} version...', INFO, silent_mode=SILENT_MODE)
+                console_log(f'Updating the webdriver from {current_webdriver_version} to {latest_geckodriver_version} version...', INFO)
                 webdriver_path = download()
         else:
             if current_webdriver_version is None or (current_webdriver_version.split('.')[0] != browser_version.split('.')[0]): # major version match
@@ -450,7 +445,7 @@ class WebDriverInstaller(object):
                 webdriver_path = download()
             else:
                 logging.info('The webdriver has already been updated to the browser version!')
-                console_log('The webdriver has already been updated to the browser version!\n', OK, silent_mode=SILENT_MODE)
+                console_log('The webdriver has already been updated to the browser version!\n', OK)
         try:
             os.chmod(webdriver_path, 0o755)
         except:

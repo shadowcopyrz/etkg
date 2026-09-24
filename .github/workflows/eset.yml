@@ -20,13 +20,7 @@ on:
         required: true
         type: choice
         options:
-          - 1secmail
-          - guerrillamail
-          - developermail
-          - mailticking
           - fakemail
-          - inboxes
-          - incognitomail
           - emailfake
         default: emailfake
       key_type:

@@ -1,5 +1,6 @@
-from .SharedTools import console_log, INFO, OK, ERROR, WARN
-from .ProgressBar import ProgressBar, DEFAULT_RICH_STYLE
+from modules.ProgressBar import ProgressBar, DEFAULT_RICH_STYLE
+from modules.utils.constants import SILENT_MODE, I_AM_EXECUTABLE, PATH_TO_SELF
+from modules.utils.logger import *
 
 import subprocess
 import requests
@@ -8,8 +9,6 @@ import logging
 import pathlib
 import sys
 import os
-
-SILENT_MODE = '--silent' in sys.argv
 
 WINDOWS_EXTERNAL_UPDATER = """
 @echo off
@@ -77,10 +76,7 @@ exit
 """
 
 class Updater:
-    def __init__(self, disable_logging=False):
-        self.disable_logging = disable_logging
-        if SILENT_MODE:
-            self.disable_logging = True
+    def __init__(self):
         self.arch = None
         if sys.platform.startswith('win'):
             self.arch = 'win32'
@@ -103,7 +99,7 @@ class Updater:
             try:
                 if update_json.get('message') is not None:
                     logging.error('Your IP address has been blocked. try again later or use a VPN!')
-                    console_log('Your IP address has been blocked. try again later or use a VPN!', ERROR, silent_mode=self.disable_logging)
+                    console_log('Your IP address has been blocked. try again later or use a VPN!', ERROR)
                     return None
             except AttributeError:
                 pass
@@ -153,11 +149,11 @@ class Updater:
             try:
                 filename = response.headers.get('content-disposition').split('filename=')[1]
                 logging.info(f'Downloading {filename}...')
-                console_log(f'Downloading {filename}...', INFO, silent_mode=self.disable_logging)
+                console_log(f'Downloading {filename}...', INFO)
             except:
                 pass
             total_length = response.headers.get('content-length')
-            if total_length is None or self.disable_logging: # No content length header
+            if total_length is None or SILENT_MODE: # No content length header
                 with open(filename, 'wb') as f:
                     f.write(response.content)
             else:
@@ -171,7 +167,7 @@ class Updater:
             return str(pathlib.Path(filename).resolve())
         except Exception as e:
             logging.critical("EXC_INFO:", exc_info=True)
-            console_log(f"Error downloading file: {e}", ERROR, silent_mode=self.disable_logging)
+            console_log(f"Error downloading file: {e}", ERROR)
             return False
     
     def extract_data(self, data_path: str, new_name=None):
@@ -182,7 +178,7 @@ class Updater:
                     extracted_folder_name = zipf.filelist[0].filename[0:-1] # rzc0d3r-ESET-KeyGen-56a2c5b/ -> rzc0d3r-ESET-KeyGen-56a2c5b
                     zipf.extractall()
                     logging.info("Extraction completed successfully!")
-                    console_log("Extraction completed successfully!", OK, silent_mode=self.disable_logging)
+                    console_log("Extraction completed successfully!", OK)
                     extracted_data_path = str(pathlib.Path(extracted_folder_name).resolve())
                 if new_name is not None:
                     os.rename(extracted_folder_name, new_name)
@@ -192,19 +188,19 @@ class Updater:
                     extracted_data_path = str(pathlib.Path('ESET-KeyGen-'+list(self.releases.keys())[0]))
             except Exception as e:
                 logging.critical("EXC_INFO:", exc_info=True)
-                console_log(str(e), ERROR, silent_mode=self.disable_logging)
+                console_log(str(e), ERROR)
         if not data_path.endswith('.zip'): # executable file
             extracted_data_path = str(pathlib.Path(data_path).resolve())
             if new_name is not None:
                 os.rename(data_path, new_name)
                 extracted_data_path = str(pathlib.Path(new_name).resolve())
         logging.warning(f"Location of update: {extracted_data_path}")
-        console_log(f"Location of update: {extracted_data_path}", WARN, silent_mode=self.disable_logging)
+        console_log(f"Location of update: {extracted_data_path}", WARN)
         return extracted_data_path
 
-    def updater_menu(self, i_am_executable, path_to_main_file):
+    def updater_menu(self):
         executable_file_url = self.find_suitable_data(datatype='executable_file')
-        if i_am_executable: # run from the build [supported platform]
+        if I_AM_EXECUTABLE: # run from the build [supported platform]
             logging.info('Transferring control to an external script...')
             if sys.platform.startswith('win'):
                 updater_path = os.environ['TEMP']+'\\updater.bat'
@@ -213,7 +209,7 @@ class Updater:
                         f.write(WINDOWS_EXTERNAL_UPDATER_SILENT)
                     else:
                         f.write(WINDOWS_EXTERNAL_UPDATER)
-                subprocess.Popen([updater_path, executable_file_url, path_to_main_file], shell=True)
+                subprocess.Popen([updater_path, executable_file_url, PATH_TO_SELF], shell=True)
             elif sys.platform == 'darwin':
                 updater_path = r'/tmp/updater.sh'
                 with open(updater_path, 'w') as f:
@@ -222,7 +218,7 @@ class Updater:
                     else:
                         f.write(MACOS_EXTERNAL_UPDATER)
                 os.chmod(updater_path, 0o755)
-                subprocess.Popen(['bash', updater_path, executable_file_url, path_to_main_file])
+                subprocess.Popen(['bash', updater_path, executable_file_url, PATH_TO_SELF])
             sys.exit(0)
         elif executable_file_url is not None: # run from source [supported platform]
             executable_file_url = self.find_suitable_data(datatype='executable_file')
@@ -230,6 +226,6 @@ class Updater:
         else: # run from source [unsupported platform]
             logging.error('No suitable executable file was found for your platform!!!')
             logging.info('Downloading the latest release source code...')
-            console_log('No suitable executable file was found for your platform!!!', ERROR, silent_mode=SILENT_MODE)
-            console_log('Downloading the latest release source code...', INFO, silent_mode=SILENT_MODE)
+            console_log('No suitable executable file was found for your platform!!!', ERROR)
+            console_log('Downloading the latest release source code...', INFO)
             self.extract_data(self.download_file(self.find_suitable_data()))
