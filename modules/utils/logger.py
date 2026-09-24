@@ -1,9 +1,10 @@
+from modules.utils.constants import LOG_PATH, SILENT_MODE
+
 import colorama
 import logging
 
-from modules.utils.constants import LOG_PATH, SILENT_MODE
-
 colorama.init()
+
 
 class LoggerType:
     def __init__(self, sborder, eborder, title, color, fill_text):
@@ -50,6 +51,3 @@ def enable_logging():
         filename=LOG_PATH,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-
-    selenium_logger = logging.getLogger('selenium')
-    selenium_logger.setLevel(logging.DEBUG)
