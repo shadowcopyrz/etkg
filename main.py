@@ -1,5 +1,7 @@
 from modules.EmailAPIs import *
 
+from typing import List, Any
+
 import sys
 
 # ---- Quick settings [for Developers] ----
