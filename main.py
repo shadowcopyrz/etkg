@@ -196,7 +196,7 @@ class MBCIConfigManager:
             if key == 'return_exit_code':
                 continue
                 
-            cli_flag = f'--{key.replace('_', '-')}'
+            cli_flag = f"--{key.replace('_', '-')}"
             
             if isinstance(value, bool):
                 if value:
