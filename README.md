@@ -130,7 +130,7 @@ Delete your current ESET HOME account
 ## 4. How to use (Part 2)
 1. [Account Generator](wiki/AccountGenerator.md)
 2. [Key Generator](wiki/KeyGenerator.md)
-3. [Reset ESET VPN](wiki/ResetEsetVPN.md)
+3. [Reset ESET VPN](wiki/ResetEsetVPN.md) [outdated]
 4. [Command Line Arguments](wiki/CommandLineArguments.md)
 5. [Updater](wiki/Updater.md)
 6. [Installer](wiki/Installer.md)
