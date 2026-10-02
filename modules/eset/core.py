@@ -148,7 +148,8 @@ class EsetKeygen:
         self.driver = driver
         self.mode = mode.upper()
         self.wait = WebDriverWait(self.driver, 15)
-        
+        self.need_resend_req = False
+
         if self.mode not in ['ESET HOME', 'SMALL BUSINESS']:
             raise RuntimeError('Undefined keygen mode!')
         
@@ -156,33 +157,65 @@ class EsetKeygen:
         logging.info(f'[{self.mode}] Sending request and waiting for response...')
         console_log(f'\n[{self.mode}] Sending request and waiting for response...', INFO)
 
+        if self.need_resend_req:
+            self.driver.get('https://home.eset.com')
+
         skip_button = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-label='onboarding-welcome-skip-introduction-btn']")))
         self.driver.execute_script('arguments[0].click();', skip_button)
-        
-        trial_button = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-add-subscription-protect-card-trial']")))
-        self.driver.execute_script('arguments[0].click();', trial_button)
-        
-        self.__press_button_with_text(['continue', 'continua'])
-    
-        if self.mode == 'ESET HOME':
-            card_lbl = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-trial-protect-card-148']")))
-        else:
-            card_lbl = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-trial-protect-card-172']")))
-        
-        self.driver.execute_script('arguments[0].click();', card_lbl)
+
+        if not self.need_resend_req:     
+            trial_button = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-add-subscription-protect-card-trial']")))
+            self.driver.execute_script('arguments[0].click();', trial_button)
+            
+            self.__press_button_with_text(['continue', 'continua'])
+
+            card_labels = [
+                self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-trial-protect-card-148']"))),
+                self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label[data-label='onboarding-trial-protect-card-172']")))
+            ]
+
+            if self.mode == 'ESET HOME':
+                card_lbl = card_labels[0]
+            else:
+                card_lbl = card_labels[1]
+            
+            self.driver.execute_script('arguments[0].click();', card_lbl)
         
         try:
-            self.__press_button_with_text(['continue', 'continua'])
-            self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-label='onboarding-trial-subscription-card']")))
+            if not self.need_resend_req:
+                self.__press_button_with_text(['continue', 'continua'])
             
-            time.sleep(0.5)
-            self.__press_button_with_text(['continue', 'continua'])
-            self.wait.until(EC.url_to_be('https://home.eset.com/onboarding/download'))
+            element = self.wait.until(
+                EC.any_of(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-label='onboarding-trial-subscription-card']")),
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-label^='choose-subscription-card-']")),
+                    EC.element_to_be_clickable(((By.CSS_SELECTOR, "button[data-label='common-error-modal-dismiss-btn']")))
+                )
+            )
 
-            logging.info(f'[{self.mode}] Response successfully received!')
-            console_log(f'[{self.mode}] Response successfully received!', OK)
+            data_label = element.get_attribute('data-label') or ''
+
+            if data_label == 'onboarding-trial-subscription-card' or data_label.startswith('choose-subscription-card-'):   
+                self.__press_button_with_text(['continue', 'continua'])
+                self.wait.until(EC.url_to_be('https://home.eset.com/onboarding/download'))
+                self.need_resend_req = False
+                logging.info(f'[{self.mode}] Response successfully received!')
+                console_log(f'[{self.mode}] Response successfully received!', OK)    
+            else: # try again
+                self.driver.execute_script('arguments[0].click();', element)
+                for _ in range(10):
+                    try:
+                        try_again_button = self.driver.find_element(By.CSS_SELECTOR, "a[data-label='common-layout-login-to-myESET-btn']")
+                        self.driver.execute_script('arguments[0].click();', try_again_button)
+                        self.need_resend_req = True
+                        break
+                    except:
+                        time.sleep(0.5)
         except Exception:
-            raise RuntimeError('Request sending error!!!')
+            if self.need_resend_req:
+                pass
+            else:
+                raise RuntimeError('Request sending error!!!')
 
     def getLD(self) -> Tuple[str, str, str]:
         logging.info('License uploads...')
