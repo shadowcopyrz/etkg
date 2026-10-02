@@ -22,6 +22,7 @@ on:
         options:
           - fakemail
           - emailfake
+          - inboxes
         default: emailfake
       key_type:
         description: 'Modes of operation'
