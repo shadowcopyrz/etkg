@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/shadowcopyrz/etkg/blob/main/img/logo_alt.png?raw=true" alt="logo"/>
     
-  ![Version](https://img.shields.io/badge/version-1.5.7.2-gold)
+  ![Version](https://img.shields.io/badge/version-1.5.7.3-gold)
   
   [![Commit activity](https://img.shields.io/github/commit-activity/t/shadowcopyrz/etkg/main?cacheSeconds=0)](https://github.com/shadowcopyrz/etkg/commits/main)
   ![Last commit](https://img.shields.io/github/last-commit/shadowcopyrz/etkg/main?cacheSeconds=0)
@@ -121,9 +121,11 @@ pip install -r requirements.txt
 ---
 
 ## 3. Preparing ESET
-Delete your current ESET HOME account
+1. Delete your current ESET HOME account
 
 ![](img/delete_eset_home_account.png)
+
+2. Disable browser protection in ESET by following these [instructions](https://help.eset.com/eis/18/en-US/idh_config_browser_protection.html)
 
 ---
 

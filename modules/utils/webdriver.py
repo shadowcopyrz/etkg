@@ -18,6 +18,24 @@ import sys
 import os
 
 
+DEFAULT_USER_AGENTS = {
+    GOOGLE_CHROME: (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/131.0.0.0 Safari/537.36'
+    ),
+    MICROSOFT_EDGE: (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'
+    ),
+    MOZILLA_FIREFOX: (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) '
+        'Gecko/20100101 Firefox/133.0'
+    ),
+}
+
+
 class ChromeProxyExtensionManager:
     MANIFEST = """
         {
@@ -109,25 +127,45 @@ class ChromeProxyExtensionManager:
                 pass
         return proxies
 
+
+def _get_user_agent(options: Any) -> str:
+    if isinstance(options, ChromeOptions):
+        return DEFAULT_USER_AGENTS[GOOGLE_CHROME]
+    if isinstance(options, EdgeOptions):
+        return DEFAULT_USER_AGENTS[MICROSOFT_EDGE]
+    if isinstance(options, FirefoxOptions):
+        return DEFAULT_USER_AGENTS[MOZILLA_FIREFOX]
+    return ''
+
+def _apply_base_options(options: Any) -> None:
+    user_agent = _get_user_agent(options)
+
+    if hasattr(options, 'page_load_strategy'):
+        options.page_load_strategy = 'eager'
+
+    if isinstance(options, FirefoxOptions):
+        options.set_preference('intl.accept_languages', 'en-US,en')
+        options.set_preference('intl.locale.requested', 'en-US')
+        options.set_preference('javascript.use_us_english_locale', True)
+        options.set_preference('general.useragent.override', user_agent)
+    else:
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_experimental_option('prefs', {'intl.accept_languages': 'en-US,en;q=0.9'})
+        options.add_argument('--lang=en-US')
+        options.add_argument('--log-level=3')
+        options.add_argument(f'--user_agent={user_agent}')
+
 def _apply_headless_options(options: Any, headless: bool) -> None:
     if not headless:
         return
-
-    user_agent = (
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-        'AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'
-    )
 
     if isinstance(options, FirefoxOptions):
         options.add_argument('--headless')
         options.add_argument('--width=1920')
         options.add_argument('--height=1080')
-        options.set_preference('general.useragent.override', user_agent)
     else:
         options.add_argument('--headless=new')
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument(f'--user-agent={user_agent}')
+        options.add_argument('--window-size=1920,1080')    
 
 def _apply_common_linux_options(options: Any) -> None:
     if os.name == 'posix':
@@ -147,6 +185,11 @@ def initSeleniumWebDriver(
     headless: bool = True
 ) -> Any:
     browser_path = browser_path or ''
+
+    if browser_path:
+        browser_path = browser_path.strip()
+    else:
+        browser_path = ''
 
     # Fix paths for aarch64 (ARM)
     if platform.machine() == 'aarch64' and browser_name == GOOGLE_CHROME:
@@ -171,17 +214,12 @@ def initSeleniumWebDriver(
 
     if browser_name == GOOGLE_CHROME:
         driver_options = ChromeOptions()
-        driver_options.page_load_strategy = 'eager'
-        if browser_path:
-            driver_options.binary_location = browser_path
-            
-        driver_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        driver_options.add_argument('--log-level=3')
-        driver_options.add_argument('--lang=en-US')
-        
+        driver_options.binary_location = browser_path
+
         if chrome_proxy_extension_path:
             driver_options.add_argument(f"--load-extension={chrome_proxy_extension_path}")
 
+        _apply_base_options(driver_options)
         _apply_headless_options(driver_options, headless)
         _apply_common_linux_options(driver_options)
         
@@ -210,15 +248,9 @@ def initSeleniumWebDriver(
 
     elif browser_name == MICROSOFT_EDGE:
         driver_options = EdgeOptions()
-        driver_options.page_load_strategy = 'eager'
+        driver_options.binary_location = browser_path
         
-        if browser_path:
-            driver_options.binary_location = browser_path
-            
-        driver_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        driver_options.add_argument('--log-level=3')
-        driver_options.add_argument('--lang=en-US')
-        
+        _apply_base_options(driver_options)
         _apply_headless_options(driver_options, headless)
         _apply_common_linux_options(driver_options)
         
@@ -240,13 +272,9 @@ def initSeleniumWebDriver(
 
     elif browser_name in (MOZILLA_FIREFOX, WATERFOX):
         driver_options = FirefoxOptions()
-        driver_options.page_load_strategy = "eager"
-        
-        if browser_path and browser_path.strip():
-            driver_options.binary_location = browser_path
+        driver_options.binary_location = browser_path
             
-        driver_options.set_preference('intl.accept_languages', 'en-US')
-        
+        _apply_base_options(driver_options)
         _apply_headless_options(driver_options, headless)
         _apply_common_linux_options(driver_options)
         

@@ -6,7 +6,7 @@ from typing import Optional, List, Any
 import sys
 
 # ---- Quick settings [for Developers] ----
-VERSION = ['v1.5.7.2', 1572]
+VERSION = ['v1.5.7.3', 1573]
 LOGO = f"""
 ███████╗███████╗███████╗████████╗   ██╗  ██╗███████╗██╗   ██╗ ██████╗ ███████╗███╗   ██╗
 ██╔════╝██╔════╝██╔════╝╚══██╔══╝   ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝ ██╔════╝████╗  ██║
@@ -30,6 +30,7 @@ DEFAULT_EMAIL_API = 'emailfake'
 EMAIL_API_CLASSES = {
     'fakemail': FakeMailAPI,
     'emailfake': EmailFakeAPI,
+    'inboxes': InboxesAPI
 }
 AVAILABLE_EMAIL_APIS = list(EMAIL_API_CLASSES.keys())
 
