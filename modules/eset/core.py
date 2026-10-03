@@ -364,7 +364,7 @@ class EsetProtectHubRegister:
         console_log('Successfully!', OK)
 
     def confirmAccount(self) -> None:
-        if self.email_obj.class_name != 'custom':
+        if not isinstance(self.email_obj, CustomEmailAPI):
             logging.info(f'[{self.email_obj.class_name}] ProtectHub-Token interception...')
             console_log(f'\n[{self.email_obj.class_name}] ProtectHub-Token interception...', INFO)
 
