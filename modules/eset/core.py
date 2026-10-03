@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from modules.utils.helpers import button_with_text_is_clickable, dataGenerator
 from modules.eset.parsers import parseESETToken, parseESETProtectHubKey
 from modules.utils.logger import console_log, INFO, OK, ERROR, WARN
-from modules.EmailAPIs import BaseEmailAPI
+from modules.EmailAPIs import BaseEmailAPI, CustomEmailAPI
 
 from typing import Optional, Tuple, Union, List
 
@@ -101,7 +101,7 @@ class EsetRegister:
         raise IPBlockedException('\nESET temporarily blocked your IP, try again later!!! Try to use VPN/Proxy or try to change Email API!!!')
 
     def confirmAccount(self) -> bool:
-        if self.email_obj.class_name != 'custom':
+        if not isinstance(self.email_obj, CustomEmailAPI):
             logging.info(f'[{self.email_obj.class_name}] ESET-HOME-Token interception...')
             console_log(f'\n[{self.email_obj.class_name}] ESET-HOME-Token interception...', INFO)
 
