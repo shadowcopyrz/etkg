@@ -18,6 +18,8 @@ LOG_PATH = str(ROOT_DIR.joinpath('ESET-KeyGen.log'))
 PROXY_FILE_NAME = 'proxies.txt'
 PROXY_FILE_PATH = str(ROOT_DIR.joinpath(PROXY_FILE_NAME))
 
+DEFAULT_COUNTRY = 'Ukraine'
+
 IS_LEGACY_WINDOWS = sys.platform.startswith('win') and platform.release() in ['7', '8', '8.1']
 SILENT_MODE = '--silent' in sys.argv
 MBCI_MODE = len(sys.argv) == 1

@@ -54,4 +54,5 @@
 | --disable-output-file  | Disables the output txt file generation |
 | --output-file          | Specifies the path to the output file |
 | --repeat {number}      | Specifies how many times to repeat generation |
+| --country {string}     | Specify which page to select during registration, default - ```Ukraine```|
 | --proxy-file {string}  | Specifies the path from where the list of proxies will be read from, default - proxies.txt |

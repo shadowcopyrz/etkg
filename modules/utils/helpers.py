@@ -28,6 +28,92 @@ class button_with_text_is_clickable:
                 
         return False
 
+
+def select_country(
+    self, 
+    target_country: str = "Ukraine", 
+    dropdown_id: str = "country-select"
+) -> bool:
+    logging.info(f"Selecting country: '{target_country}'...")
+    wait = WebDriverWait(self.driver, 10)
+    actions = ActionChains(self.driver)
+
+    try:
+        # 1. Находим целевой контейнер по ID (или запасному селектору)
+        container = wait.until(
+            EC.presence_of_element_located((
+                By.XPATH, 
+                f"//*[@id='{dropdown_id}'] | //*[contains(@class, '{dropdown_id}')]"
+            ))
+        )
+        
+        # Центрируем во вьюпорте, чтобы перекрыть sticky-шапки и плавающие кнопки
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", container)
+
+        # 2. Проверяем, не выбрана ли страна уже
+        try:
+            current_value = container.find_element(
+                By.CSS_SELECTOR, '[class*="single-value"], [class*="singleValue"]'
+            ).text.strip()
+            if current_value.lower() == target_country.strip().lower():
+                logging.info(f"Country '{target_country}' is already selected.")
+                return True
+        except NoSuchElementException:
+            pass
+
+        # 3. Кликаем по контролу для открытия меню
+        control = container.find_element(By.CSS_SELECTOR, '[class*="control"]') if "control" not in container.get_attribute("class") else container
+        actions.move_to_element(control).click().perform()
+
+        # 4. Находим input внутри открытого селекта и вводим название страны
+        input_field = wait.until(
+            EC.presence_of_element_located((
+                By.CSS_SELECTOR, 
+                f"#{dropdown_id} input, [class*='control'] input"
+            ))
+        )
+        
+        # Очистка и быстрый ввод названия
+        input_field.send_keys(Keys.CONTROL + "a")
+        input_field.send_keys(Keys.BACKSPACE)
+        input_field.send_keys(target_country)
+
+        # 5. Ожидаем появление нужной опции в выпадающем списке
+        # Ищем строго по тексту нужной страны внутри элементов опций меню
+        option_xpath = (
+            f"//*[contains(@class, 'option') and "
+            f"translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = "
+            f"'{target_country.strip().lower()}']"
+        )
+
+        try:
+            option_el = wait.until(EC.element_to_be_clickable((By.XPATH, option_xpath)))
+            
+            # Двойной fallback на случай перекрытия соседними слоями
+            try:
+                actions.move_to_element(option_el).click().perform()
+            except Exception:
+                self.driver.execute_script("arguments[0].click();", option_el)
+
+        except TimeoutException:
+            # Fallback: если меню отфильтровалось до 1 элемента, подтверждаем через ENTER
+            logging.warning("Option element click timed out; sending ENTER key to input...")
+            input_field.send_keys(Keys.ENTER)
+
+        # 6. Подтверждение успешного выбора
+        wait.until(
+            lambda d: target_country.lower() in container.find_element(
+                By.CSS_SELECTOR, '[class*="single-value"], [class*="singleValue"]'
+            ).text.lower()
+        )
+
+        logging.info(f"Country '{target_country}' successfully selected!")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to select country '{target_country}': {e}")
+        return False
+
 def dataGenerator(length, only_numbers=False):
     """generates a password by default. If only_numbers=True - phone number"""
     data = []

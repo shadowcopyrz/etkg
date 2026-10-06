@@ -6,7 +6,7 @@ from typing import Optional, List, Any
 import sys
 
 # ---- Quick settings [for Developers] ----
-VERSION = ['v1.5.7.3', 1573]
+VERSION = ['v1.5.7.4', 1574]
 LOGO = f"""
 ███████╗███████╗███████╗████████╗   ██╗  ██╗███████╗██╗   ██╗ ██████╗ ███████╗███╗   ██╗
 ██╔════╝██╔════╝██╔════╝╚══██╔══╝   ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝ ██╔════╝████╗  ██║
@@ -62,6 +62,7 @@ args: Dict[str, Any] = {
     'disable_output_file': False,
     'output_file': '',
     'repeat': 1,
+    'country': DEFAULT_COUNTRY,
     'proxy_file': PROXY_FILE_PATH,
     
     'silent': False,
@@ -326,6 +327,15 @@ def RunMenu():
     SettingMenu.add_item(
         OptionAction(
             args,
+            title='--country',
+            action='manual_input',
+            args_names='country',
+            default_value=args['country']
+        )
+    )
+    SettingMenu.add_item(
+        OptionAction(
+            args,
             title='--proxy-file',
             action='manual_input',
             args_names='proxy-file',
@@ -337,7 +347,13 @@ def RunMenu():
         MBCIConfigManager().save(args)
         sys.exit()
 
+    def start_from_settings_menu():
+        SettingMenu.close()
+        MainMenu.close()
+
+    SettingMenu.add_item(MenuAction('Start', start_from_settings_menu))
     SettingMenu.add_item(MenuAction('Back', SettingMenu.close))
+    
     MainMenu.add_item(MenuAction('Settings', SettingMenu))
     MainMenu.add_item(MenuAction('Start', MainMenu.close))
     MainMenu.add_item(MenuAction('Exit', exit_with_save_config))
@@ -390,6 +406,7 @@ def parse_argv(sys_argv=None):
         args_parser.add_argument('--disable-output-file', action='store_true', help='Disables the output txt file generation')
         args_parser.add_argument('--output-file', type=str, default='', help='Specifies the path to the output file')
         args_parser.add_argument('--repeat', type=int, default=1, help='Specifies how many times to repeat generation')
+        args_parser.add_argument('--country', type=str, default=DEFAULT_COUNTRY, help=f'Specify which page to select during registration, default - {DEFAULT_COUNTRY}')
         args_parser.add_argument('--proxy-file', type=str, default=PROXY_FILE_PATH, help=f'Specifies the path from where the list of proxies will be read from, default - {PROXY_FILE_NAME}')
 
         # Logging
@@ -556,7 +573,7 @@ def main(disable_exit=False):
             
             # ESET HOME
             if args['account'] or args['key'] or args['small_business_key']:
-                ER_obj = ER(email_obj, e_passwd, DRIVER)
+                ER_obj = ER(email_obj, e_passwd, DRIVER, args['country'])
                 ER_obj.createAccount()
                 ER_obj.confirmAccount()
 
@@ -589,7 +606,7 @@ def main(disable_exit=False):
 
             # ESET ProtectHub
             elif args['protecthub_account'] or args['advanced_key']:
-                EPHR_obj = EPHR(email_obj, e_passwd, DRIVER)
+                EPHR_obj = EPHR(email_obj, e_passwd, DRIVER, args['country'])
                 EPHR_obj.createAccount()
                 EPHR_obj.confirmAccount()
                 EPHR_obj.activateAccount()
@@ -677,7 +694,10 @@ if __name__ == '__main__':
                 input('\nPress Enter to continue...')
 
         parse_argv()
+        
         args['repeat'] = abs(args['repeat'])
+        if not args['country']:
+            args['country'] = DEFAULT_COUNTRY
         
         try:
             config_manager.save(args)
